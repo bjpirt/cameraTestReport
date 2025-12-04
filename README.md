@@ -1,22 +1,29 @@
 # Shutter Speed Report
 
-This is a 100% client side web application that is designed to produce service reports for cameras. It includes:
+A client-side web application for generating camera shutter speed service reports.
 
-* The ability to log observed shutter speeds against expected shutter speeds
-* A report of the EV difference from expected
-* A graph showing the shutter speed and its variation from expected
-* A log of actions performed on the camera
-* Metadata about the camera (name, model, serial number, dates, etc)
+## Features
 
-Once the report has been generated it is also possible to download it as a pdf.
-
-Previous reports are stored in local browser storage for future reference.
+- Log observed vs expected shutter speeds with EV difference calculations
+- Graphical visualization of shutter speed variance
+- Action log for camera servicing
+- Camera metadata (name, model, serial number, dates)
+- PDF export
+- Local storage persistence for previous reports
 
 ## Tech Stack
 
-* Written in Typescript
-* React as the front-end framework
-* Uses esbuild for bundling and compilation
-* Linting using eslint
-* Tested using jest for react components
-* Browser tested using Cypress
+TypeScript, React 19, Tailwind CSS v4, esbuild, ESLint, Jest, Cypress
+
+## Development
+
+```bash
+npm install          # Install dependencies
+npm run dev          # Start dev server at http://localhost:8000
+npm run build        # Production build
+npm run typecheck    # Type check
+npm run lint         # Lint
+npm test             # Run tests
+npm run cypress      # E2E tests (interactive, requires dev server)
+npm run cypress:run  # E2E tests (headless, requires dev server)
+```
