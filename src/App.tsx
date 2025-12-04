@@ -1,12 +1,9 @@
-import { useState } from "react";
 import { CameraMetadataForm } from "./components/CameraMetadataForm";
 import { ShutterTestSection } from "./components/ShutterTestSection";
-import { CameraMetadata, createEmptyCameraMetadata } from "./types/CameraMetadata";
-import { ShutterReading, createDefaultReadings } from "./types/ShutterReading";
+import { usePersistedCamera } from "./hooks/usePersistedCamera";
 
 export function App() {
-  const [metadata, setMetadata] = useState<CameraMetadata>(createEmptyCameraMetadata);
-  const [readings, setReadings] = useState<ShutterReading[]>(createDefaultReadings);
+  const { metadata, readings, setMetadata, setReadings } = usePersistedCamera();
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
