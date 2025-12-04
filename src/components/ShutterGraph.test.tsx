@@ -19,11 +19,11 @@ describe("ShutterGraph", () => {
 
   it("shows reading count", () => {
     const readings: ShutterReading[] = [
-      { id: "1", expectedTime: "1/1000", measuredMs: 1 },
-      { id: "2", expectedTime: "1/500", measuredMs: null },
+      { id: "1", expectedTime: "1/1000", beforeMs: null, measuredMs: 1 },
+      { id: "2", expectedTime: "1/500", beforeMs: null, measuredMs: null },
     ];
     render(<ShutterGraph readings={readings} />);
 
-    expect(screen.getByText(/1 of 2 readings/)).toBeInTheDocument();
+    expect(screen.getByText(/After: 1 of 2/)).toBeInTheDocument();
   });
 });

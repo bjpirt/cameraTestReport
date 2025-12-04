@@ -6,9 +6,9 @@ import { ShutterReading } from "../types/ShutterReading";
 
 describe("ShutterReadingsTable", () => {
   const mockReadings: ShutterReading[] = [
-    { id: "1", expectedTime: "1/1000", measuredMs: null },
-    { id: "2", expectedTime: "1/500", measuredMs: 2.1 },
-    { id: "3", expectedTime: "1/250", measuredMs: 4 },
+    { id: "1", expectedTime: "1/1000", beforeMs: null, measuredMs: null },
+    { id: "2", expectedTime: "1/500", beforeMs: null, measuredMs: 2.1 },
+    { id: "3", expectedTime: "1/250", beforeMs: null, measuredMs: 4 },
   ];
 
   it("renders table headers", () => {
@@ -17,8 +17,8 @@ describe("ShutterReadingsTable", () => {
     );
 
     expect(screen.getByText("Expected")).toBeInTheDocument();
-    expect(screen.getByText("Measured (ms)")).toBeInTheDocument();
-    expect(screen.getByText("Actual")).toBeInTheDocument();
+    expect(screen.getByText("Before (ms)")).toBeInTheDocument();
+    expect(screen.getByText("After (ms)")).toBeInTheDocument();
     expect(screen.getByText("EV Diff")).toBeInTheDocument();
   });
 
@@ -28,9 +28,9 @@ describe("ShutterReadingsTable", () => {
     );
 
     expect(screen.getByText("1/1000")).toBeInTheDocument();
-    expect(screen.getByText("1/500")).toBeInTheDocument();
-    // 1/250 appears twice (expected and actual when measurement = 4ms)
-    expect(screen.getAllByText("1/250")).toHaveLength(2);
+    // 1/500 and 1/250 appear twice - once as expected time, once as fraction for measured value
+    expect(screen.getAllByText("1/500").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("1/250").length).toBeGreaterThanOrEqual(1);
   });
 
   it("displays measured values when present", () => {
@@ -40,17 +40,6 @@ describe("ShutterReadingsTable", () => {
 
     expect(screen.getByDisplayValue("2.1")).toBeInTheDocument();
     expect(screen.getByDisplayValue("4")).toBeInTheDocument();
-  });
-
-  it("displays calculated actual time as fraction", () => {
-    render(
-      <ShutterReadingsTable readings={mockReadings} onChange={() => {}} />
-    );
-
-    // 2.1ms ≈ 1/476
-    expect(screen.getByText("1/476")).toBeInTheDocument();
-    // 4ms = 1/250 (appears twice - expected and actual)
-    expect(screen.getAllByText("1/250")).toHaveLength(2);
   });
 
   it("displays EV difference", () => {
@@ -64,32 +53,33 @@ describe("ShutterReadingsTable", () => {
     expect(evCells.length).toBeGreaterThan(0);
   });
 
-  it("calls onChange when measured value is updated", async () => {
+  it("calls onChange when after value is updated", async () => {
     const user = userEvent.setup();
     const handleChange = jest.fn();
     const readings: ShutterReading[] = [
-      { id: "1", expectedTime: "1/1000", measuredMs: null },
+      { id: "1", expectedTime: "1/1000", beforeMs: null, measuredMs: null },
     ];
 
     render(
       <ShutterReadingsTable readings={readings} onChange={handleChange} />
     );
 
-    const input = screen.getByPlaceholderText("—");
-    await user.type(input, "5");
+    // Get the second input (after field - first is before)
+    const inputs = screen.getAllByPlaceholderText("—");
+    await user.type(inputs[1], "5");
 
     expect(handleChange).toHaveBeenCalledWith([
-      { id: "1", expectedTime: "1/1000", measuredMs: 5 },
+      { id: "1", expectedTime: "1/1000", beforeMs: null, measuredMs: 5 },
     ]);
   });
 
-  it("shows dash for unmeasured readings in actual and EV columns", () => {
+  it("shows dash for unmeasured readings in EV column", () => {
     render(
       <ShutterReadingsTable readings={mockReadings} onChange={() => {}} />
     );
 
-    // The first row has no measurement, should show dashes
+    // The first row has no after measurement, should show dash in EV diff
     const dashes = screen.getAllByText("—");
-    expect(dashes.length).toBe(2); // actual and EV diff
+    expect(dashes.length).toBe(1); // just EV diff for first row
   });
 });

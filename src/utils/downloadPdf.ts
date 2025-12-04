@@ -3,7 +3,7 @@ import pdfFonts from "pdfmake/build/vfs_fonts";
 import type { TDocumentDefinitions, Content, TableCell } from "pdfmake/interfaces";
 import { CameraMetadata } from "../types/CameraMetadata";
 import { ShutterReading } from "../types/ShutterReading";
-import { fractionToMs, msToFraction, calculateEvDifference } from "./shutter";
+import { fractionToMs, calculateEvDifference } from "./shutter";
 
 // Initialize pdfmake with fonts
 pdfMake.vfs = pdfFonts.vfs;
@@ -172,23 +172,22 @@ function createMetadataSection(metadata: CameraMetadata): Content {
 }
 
 function createReadingsSection(readings: ShutterReading[]): Content {
-  const measuredCount = readings.filter((r) => r.measuredMs !== null).length;
+  const beforeCount = readings.filter((r) => r.beforeMs !== null).length;
+  const afterCount = readings.filter((r) => r.measuredMs !== null).length;
 
   const headerRow: TableCell[] = [
     { text: "Expected", style: "tableHeader", alignment: "center" },
-    { text: "Measured (ms)", style: "tableHeader", alignment: "center" },
-    { text: "Actual", style: "tableHeader", alignment: "center" },
+    { text: "Before (ms)", style: "tableHeader", alignment: "center" },
+    { text: "After (ms)", style: "tableHeader", alignment: "center" },
     { text: "EV Diff", style: "tableHeader", alignment: "center" },
   ];
 
   const dataRows: TableCell[][] = readings.map((reading) => {
     const expectedMs = fractionToMs(reading.expectedTime);
-    let actualTime = "—";
     let evDiff = "—";
     let evColor = "#000000";
 
     if (reading.measuredMs !== null) {
-      actualTime = msToFraction(reading.measuredMs);
       const ev = calculateEvDifference(expectedMs, reading.measuredMs);
       const sign = ev > 0 ? "+" : "";
       evDiff = `${sign}${ev.toFixed(2)}`;
@@ -207,11 +206,15 @@ function createReadingsSection(readings: ShutterReading[]): Content {
     return [
       { text: reading.expectedTime, style: "tableCell", alignment: "center" },
       {
+        text: reading.beforeMs?.toFixed(2) ?? "—",
+        style: "tableCell",
+        alignment: "center",
+      },
+      {
         text: reading.measuredMs?.toFixed(2) ?? "—",
         style: "tableCell",
         alignment: "center",
       },
-      { text: actualTime, style: "tableCell", alignment: "center" },
       {
         text: evDiff,
         style: "tableCell",
@@ -225,7 +228,7 @@ function createReadingsSection(readings: ShutterReading[]): Content {
     stack: [
       { text: "Shutter Speed Readings", style: "sectionHeader" },
       {
-        text: `${measuredCount} of ${readings.length} readings recorded`,
+        text: `Before: ${beforeCount} | After: ${afterCount} of ${readings.length} readings`,
         fontSize: 10,
         color: "#6b7280",
         margin: [0, 0, 0, 8],

@@ -94,7 +94,7 @@ describe("usePersistedCamera", () => {
     });
 
     const newReadings = [
-      { id: "custom", expectedTime: "1/2000", measuredMs: 0.5 },
+      { id: "custom", expectedTime: "1/2000", beforeMs: null, measuredMs: 0.5 },
     ];
 
     act(() => {

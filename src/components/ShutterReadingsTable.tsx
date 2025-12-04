@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ShutterReading } from "../types/ShutterReading";
-import { msToFraction, fractionToMs, calculateEvDifference } from "../utils/shutter";
+import { fractionToMs, calculateEvDifference, msToFraction } from "../utils/shutter";
 
 interface ShutterReadingsTableProps {
   readings: ShutterReading[];
@@ -13,7 +13,16 @@ export function ShutterReadingsTable({
 }: ShutterReadingsTableProps) {
   const [newSpeed, setNewSpeed] = useState("");
 
-  const handleMeasuredChange = (id: string, value: string) => {
+  const handleBeforeChange = (id: string, value: string) => {
+    const numValue = value === "" ? null : parseFloat(value);
+    onChange(
+      readings.map((r) =>
+        r.id === id ? { ...r, beforeMs: numValue } : r
+      )
+    );
+  };
+
+  const handleAfterChange = (id: string, value: string) => {
     const numValue = value === "" ? null : parseFloat(value);
     onChange(
       readings.map((r) =>
@@ -41,6 +50,7 @@ export function ShutterReadingsTable({
     const newReading: ShutterReading = {
       id: `reading-custom-${Date.now()}`,
       expectedTime: normalizedSpeed,
+      beforeMs: null,
       measuredMs: null,
     };
 
@@ -67,13 +77,30 @@ export function ShutterReadingsTable({
     }
   };
 
-  const handleReadingKeyDown = (e: React.KeyboardEvent, index: number) => {
+  const handleReadingKeyDown = (
+    e: React.KeyboardEvent,
+    index: number,
+    field: "before" | "after"
+  ) => {
     if (e.key === "Enter" || (e.key === "Tab" && !e.shiftKey)) {
+      e.preventDefault();
       const nextIndex = index + 1;
-      if (nextIndex < readings.length) {
-        e.preventDefault();
-        const nextInput = document.getElementById(`reading-input-${nextIndex}`);
-        nextInput?.focus();
+      if (field === "before") {
+        // Move to next before field, or first after field when done
+        if (nextIndex < readings.length) {
+          const nextInput = document.getElementById(`reading-before-${nextIndex}`);
+          nextInput?.focus();
+        } else {
+          // Jump to first after field
+          const firstAfter = document.getElementById(`reading-after-0`);
+          firstAfter?.focus();
+        }
+      } else {
+        // Move to next after field
+        if (nextIndex < readings.length) {
+          const nextInput = document.getElementById(`reading-after-${nextIndex}`);
+          nextInput?.focus();
+        }
       }
     }
   };
@@ -95,19 +122,16 @@ export function ShutterReadingsTable({
       <thead>
         <tr className="border-b border-gray-200">
           <th className="text-left py-2 font-medium text-gray-600">Expected</th>
-          <th className="text-left py-2 font-medium text-gray-600">Measured (ms)</th>
-          <th className="text-left py-2 font-medium text-gray-600">Actual</th>
+          <th className="text-left py-2 font-medium text-gray-600">Before (ms)</th>
+          <th className="text-left py-2 font-medium text-gray-600">After (ms)</th>
           <th className="text-left py-2 font-medium text-gray-600">EV Diff</th>
         </tr>
       </thead>
       <tbody>
         {readings.map((reading, index) => {
           const expectedMs = fractionToMs(reading.expectedTime);
-          const hasReading = reading.measuredMs !== null;
-          const actualFraction = hasReading
-            ? msToFraction(reading.measuredMs!)
-            : null;
-          const evDiff = hasReading
+          const hasAfterReading = reading.measuredMs !== null;
+          const evDiff = hasAfterReading
             ? calculateEvDifference(expectedMs, reading.measuredMs!)
             : null;
 
@@ -115,20 +139,40 @@ export function ShutterReadingsTable({
             <tr key={reading.id} className="border-b border-gray-100">
               <td className="py-1.5 font-mono">{reading.expectedTime}</td>
               <td className="py-1.5">
-                <input
-                  type="number"
-                  step="0.1"
-                  id={`reading-input-${index}`}
-                  value={reading.measuredMs ?? ""}
-                  onChange={(e) => handleMeasuredChange(reading.id, e.target.value)}
-                  onKeyDown={(e) => handleReadingKeyDown(e, index)}
-                  className="w-20 px-2 py-0.5 border border-gray-300 rounded text-right font-mono
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="—"
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    step="0.1"
+                    id={`reading-before-${index}`}
+                    value={reading.beforeMs ?? ""}
+                    onChange={(e) => handleBeforeChange(reading.id, e.target.value)}
+                    onKeyDown={(e) => handleReadingKeyDown(e, index, "before")}
+                    className="w-20 px-2 py-0.5 border border-gray-300 rounded text-right font-mono
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="—"
+                  />
+                  <span className="text-gray-500 font-mono text-xs w-14">
+                    {reading.beforeMs !== null ? msToFraction(reading.beforeMs) : ""}
+                  </span>
+                </div>
               </td>
-              <td className="py-1.5 font-mono">
-                {actualFraction ?? "—"}
+              <td className="py-1.5">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    step="0.1"
+                    id={`reading-after-${index}`}
+                    value={reading.measuredMs ?? ""}
+                    onChange={(e) => handleAfterChange(reading.id, e.target.value)}
+                    onKeyDown={(e) => handleReadingKeyDown(e, index, "after")}
+                    className="w-20 px-2 py-0.5 border border-gray-300 rounded text-right font-mono
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="—"
+                  />
+                  <span className="text-gray-500 font-mono text-xs w-14">
+                    {reading.measuredMs !== null ? msToFraction(reading.measuredMs) : ""}
+                  </span>
+                </div>
               </td>
               <td className={`py-1.5 font-mono ${evDiff !== null ? getEvColor(evDiff) : ""}`}>
                 {evDiff !== null ? formatEvDiff(evDiff) : "—"}

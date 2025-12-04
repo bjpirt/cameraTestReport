@@ -42,14 +42,14 @@ describe("Persistence", () => {
 
     // Verify it was added
     cy.contains("1/2000").should("exist");
-    cy.contains("0 of 12 readings");
+    cy.contains("Before: 0 | After: 0 of 12");
 
     // Reload the page
     cy.reload();
 
     // Verify the custom speed persisted
     cy.contains("1/2000").should("exist");
-    cy.contains("0 of 12 readings");
+    cy.contains("Before: 0 | After: 0 of 12");
   });
 
   it("persists multiple changes together", () => {

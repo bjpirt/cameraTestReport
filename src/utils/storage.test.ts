@@ -95,7 +95,7 @@ describe("storage", () => {
               serviceDate: "2024-01-15",
               createdTimestamp: "2024-01-15T10:00:00.000Z",
             },
-            readings: [{ id: "r1", expectedTime: "1/1000", measuredMs: 1.1 }],
+            readings: [{ id: "r1", expectedTime: "1/1000", beforeMs: null, measuredMs: 1.1 }],
             actions: ["Cleaned shutter"],
             notes: "Test notes",
             createdAt: "2024-01-01T00:00:00.000Z",
@@ -206,7 +206,7 @@ describe("storage", () => {
     it("updates readings", () => {
       const data = createDefaultStoredData();
       const newReadings = [
-        { id: "r1", expectedTime: "1/2000", measuredMs: 0.5 },
+        { id: "r1", expectedTime: "1/2000", beforeMs: null, measuredMs: 0.5 },
       ];
       const updated = updateCurrentCamera(data, { readings: newReadings });
       expect(getCurrentCamera(updated).readings).toEqual(newReadings);
@@ -349,7 +349,7 @@ describe("storage", () => {
           serviceDate: "2024-03-15",
           createdTimestamp: "2024-03-15T10:00:00.000Z",
         },
-        readings: [{ id: "r1", expectedTime: "1/1000", measuredMs: 1.05 }],
+        readings: [{ id: "r1", expectedTime: "1/1000", beforeMs: null, measuredMs: 1.05 }],
         actions: ["CLA performed"],
         notes: "Imported from backup",
       };

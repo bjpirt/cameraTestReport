@@ -23,7 +23,8 @@ export interface ShutterGraphRef {
 
 interface ChartDataPoint {
   expectedTime: string;
-  evDiff: number | null;
+  beforeEvDiff: number | null;
+  afterEvDiff: number | null;
   toleranceRange: [number, number];
 }
 
@@ -38,14 +39,19 @@ function prepareChartData(readings: ShutterReading[]): ChartDataPoint[] {
   return readings.map((reading) => {
     const expectedMs = fractionToMs(reading.expectedTime);
     const tolerance = getToleranceForSpeed(reading.expectedTime);
-    const evDiff =
+    const beforeEvDiff =
+      reading.beforeMs !== null
+        ? calculateEvDifference(expectedMs, reading.beforeMs)
+        : null;
+    const afterEvDiff =
       reading.measuredMs !== null
         ? calculateEvDifference(expectedMs, reading.measuredMs)
         : null;
 
     return {
       expectedTime: reading.expectedTime,
-      evDiff,
+      beforeEvDiff,
+      afterEvDiff,
       toleranceRange: [-tolerance, tolerance] as [number, number],
     };
   });
@@ -53,7 +59,8 @@ function prepareChartData(readings: ShutterReading[]): ChartDataPoint[] {
 
 export const ShutterGraph = forwardRef<ShutterGraphRef, ShutterGraphProps>(
   function ShutterGraph({ readings }, ref) {
-    const measuredCount = readings.filter((r) => r.measuredMs !== null).length;
+    const beforeCount = readings.filter((r) => r.beforeMs !== null).length;
+    const afterCount = readings.filter((r) => r.measuredMs !== null).length;
     // Reverse so slower speeds (1s) are on the left, faster (1/1000) on the right
     const chartData = prepareChartData(readings).reverse();
 
@@ -103,9 +110,10 @@ export const ShutterGraph = forwardRef<ShutterGraphRef, ShutterGraphProps>(
                 }}
               />
               <Tooltip
-                formatter={(value) => {
+                formatter={(value, name) => {
                   if (typeof value === "number") {
-                    return `${value > 0 ? "+" : ""}${value.toFixed(2)} EV`;
+                    const label = name === "beforeEvDiff" ? "Before" : "After";
+                    return [`${value > 0 ? "+" : ""}${value.toFixed(2)} EV`, label];
                   }
                   return "—";
                 }}
@@ -121,10 +129,21 @@ export const ShutterGraph = forwardRef<ShutterGraphRef, ShutterGraphProps>(
                 fillOpacity={0.2}
                 isAnimationActive={false}
               />
-              {/* Measured EV difference line */}
+              {/* Before EV difference line (grey) */}
               <Line
                 type="monotone"
-                dataKey="evDiff"
+                dataKey="beforeEvDiff"
+                stroke="#9ca3af"
+                strokeWidth={2}
+                dot={{ fill: "#9ca3af", strokeWidth: 0, r: 4 }}
+                activeDot={{ r: 6, fill: "#6b7280" }}
+                connectNulls={false}
+                isAnimationActive={false}
+              />
+              {/* After EV difference line (blue) */}
+              <Line
+                type="monotone"
+                dataKey="afterEvDiff"
                 stroke="#2563eb"
                 strokeWidth={2}
                 dot={{ fill: "#2563eb", strokeWidth: 0, r: 4 }}
@@ -136,7 +155,7 @@ export const ShutterGraph = forwardRef<ShutterGraphRef, ShutterGraphProps>(
           </ResponsiveContainer>
         </div>
         <p className="text-sm text-gray-500 text-center mt-2">
-          {measuredCount} of {readings.length} readings
+          Before: {beforeCount} | After: {afterCount} of {readings.length}
         </p>
       </div>
     );

@@ -56,8 +56,8 @@ describe("downloadReportAsJson", () => {
   });
 
   const createReadings = (): ShutterReading[] => [
-    { id: "r1", expectedTime: "1/1000", measuredMs: 1.1 },
-    { id: "r2", expectedTime: "1/500", measuredMs: 2.1 },
+    { id: "r1", expectedTime: "1/1000", beforeMs: null, measuredMs: 1.1 },
+    { id: "r2", expectedTime: "1/500", beforeMs: null, measuredMs: 2.1 },
   ];
 
   it("creates a blob with JSON content", () => {

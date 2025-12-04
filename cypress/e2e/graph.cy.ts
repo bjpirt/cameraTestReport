@@ -8,12 +8,17 @@ describe("Shutter Speed Graph", () => {
   });
 
   it("shows reading count", () => {
-    cy.contains("0 of 11 readings");
+    cy.contains("Before: 0 | After: 0 of 11");
   });
 
-  it("updates reading count when measurements added", () => {
-    cy.get('input[type="number"]').first().type("1");
-    cy.contains("1 of 11 readings");
+  it("updates reading count when before measurement added", () => {
+    cy.get("#reading-before-0").type("1");
+    cy.contains("Before: 1 | After: 0 of 11");
+  });
+
+  it("updates reading count when after measurement added", () => {
+    cy.get("#reading-after-0").type("1");
+    cy.contains("Before: 0 | After: 1 of 11");
   });
 
   it("renders chart with Y-axis showing EV values", () => {

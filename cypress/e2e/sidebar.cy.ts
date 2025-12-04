@@ -197,8 +197,8 @@ describe("Reports Sidebar", () => {
         createdTimestamp: "2024-06-15T10:00:00.000Z",
       },
       readings: [
-        { id: "r1", expectedTime: "1/1000", measuredMs: 1.05 },
-        { id: "r2", expectedTime: "1/500", measuredMs: 2.1 },
+        { id: "r1", expectedTime: "1/1000", beforeMs: 1.05, measuredMs: 1.02 },
+        { id: "r2", expectedTime: "1/500", beforeMs: null, measuredMs: 2.1 },
       ],
       actions: ["CLA performed", "Shutter replaced"],
       notes: "Imported test report",
