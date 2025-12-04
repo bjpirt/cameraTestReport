@@ -59,6 +59,27 @@ describe("App", () => {
       cy.get('input[type="number"]').first().type("3");
       cy.get(".text-red-600").should("exist");
     });
+
+    it("allows adding custom shutter speeds", () => {
+      cy.get('input[placeholder="e.g. 1/2000"]').type("1/2000");
+      cy.contains("button", "Add").click();
+      cy.contains("1/2000").should("exist");
+      cy.contains("0 of 12 readings");
+    });
+
+    it("adds custom speed in sorted order", () => {
+      cy.get('input[placeholder="e.g. 1/2000"]').type("1/2000");
+      cy.contains("button", "Add").click();
+      // 1/2000 should appear before 1/1000 (it's faster)
+      cy.get("tbody tr").first().should("contain", "1/2000");
+    });
+
+    it("prevents adding duplicate speeds", () => {
+      cy.get('input[placeholder="e.g. 1/2000"]').type("1/1000");
+      cy.contains("button", "Add").click();
+      // Should still only have 11 readings (duplicate not added)
+      cy.contains("0 of 11 readings");
+    });
   });
 
   describe("Shutter Speed Graph", () => {

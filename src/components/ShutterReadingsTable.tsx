@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ShutterReading } from "../types/ShutterReading";
 import { msToFraction, fractionToMs, calculateEvDifference } from "../utils/shutter";
 
@@ -10,6 +11,8 @@ export function ShutterReadingsTable({
   readings,
   onChange,
 }: ShutterReadingsTableProps) {
+  const [newSpeed, setNewSpeed] = useState("");
+
   const handleMeasuredChange = (id: string, value: string) => {
     const numValue = value === "" ? null : parseFloat(value);
     onChange(
@@ -17,6 +20,51 @@ export function ShutterReadingsTable({
         r.id === id ? { ...r, measuredMs: numValue } : r
       )
     );
+  };
+
+  const handleAddSpeed = () => {
+    const trimmed = newSpeed.trim();
+    if (!trimmed) return;
+
+    // Normalize the input (e.g., "1/2000" or "2" for 2 seconds)
+    const normalizedSpeed = trimmed.startsWith("1/") || !trimmed.includes("/")
+      ? trimmed
+      : trimmed;
+
+    // Check if speed already exists
+    if (readings.some((r) => r.expectedTime === normalizedSpeed)) {
+      return;
+    }
+
+    // Create new reading and insert in correct position (sorted by ms, fastest first)
+    const newMs = fractionToMs(normalizedSpeed);
+    const newReading: ShutterReading = {
+      id: `reading-custom-${Date.now()}`,
+      expectedTime: normalizedSpeed,
+      measuredMs: null,
+    };
+
+    // Find insertion point to keep sorted (fastest/smallest ms first)
+    const newReadings = [...readings];
+    const insertIndex = newReadings.findIndex(
+      (r) => fractionToMs(r.expectedTime) > newMs
+    );
+
+    if (insertIndex === -1) {
+      newReadings.push(newReading);
+    } else {
+      newReadings.splice(insertIndex, 0, newReading);
+    }
+
+    onChange(newReadings);
+    setNewSpeed("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddSpeed();
+    }
   };
 
   const formatEvDiff = (ev: number): string => {
@@ -76,6 +124,30 @@ export function ShutterReadingsTable({
           );
         })}
       </tbody>
+      <tfoot>
+        <tr>
+          <td colSpan={4} className="pt-3">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={newSpeed}
+                onChange={(e) => setNewSpeed(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="e.g. 1/2000"
+                className="w-24 px-2 py-1 border border-gray-300 rounded text-sm font-mono
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <button
+                onClick={handleAddSpeed}
+                className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+              >
+                Add
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tfoot>
     </table>
   );
 }
