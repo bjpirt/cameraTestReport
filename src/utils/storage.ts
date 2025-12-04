@@ -132,9 +132,25 @@ export function addCamera(data: StoredData): StoredData {
 export function deleteCamera(data: StoredData, cameraId: string): StoredData {
   const cameraIds = Object.keys(data.cameras);
 
-  // Don't delete the last camera
+  // If deleting the last camera, create a new empty one
   if (cameraIds.length <= 1) {
-    return data;
+    const newId = generateCameraId();
+    const now = new Date().toISOString();
+    return {
+      ...data,
+      currentCameraId: newId,
+      cameras: {
+        [newId]: {
+          id: newId,
+          metadata: createEmptyCameraMetadata(),
+          readings: createDefaultReadings(),
+          actions: [],
+          notes: "",
+          createdAt: now,
+          updatedAt: now,
+        },
+      },
+    };
   }
 
   const { [cameraId]: _deleted, ...remainingCameras } = data.cameras;
@@ -166,6 +182,35 @@ export function switchCamera(data: StoredData, cameraId: string): StoredData {
 
 export function getAllCameras(data: StoredData): StoredCamera[] {
   return Object.values(data.cameras);
+}
+
+export function importCamera(
+  data: StoredData,
+  importedData: {
+    metadata: CameraMetadata;
+    readings: ShutterReading[];
+    actions: string[];
+    notes: string;
+  }
+): StoredData {
+  const newId = generateCameraId();
+  const now = new Date().toISOString();
+  return {
+    ...data,
+    currentCameraId: newId,
+    cameras: {
+      ...data.cameras,
+      [newId]: {
+        id: newId,
+        metadata: importedData.metadata,
+        readings: importedData.readings,
+        actions: importedData.actions,
+        notes: importedData.notes,
+        createdAt: now,
+        updatedAt: now,
+      },
+    },
+  };
 }
 
 function isValidStoredData(data: unknown): data is StoredData {

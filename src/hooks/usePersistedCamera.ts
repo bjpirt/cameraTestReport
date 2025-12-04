@@ -10,6 +10,7 @@ import {
   deleteCamera,
   switchCamera,
   getAllCameras,
+  importCamera,
   StoredData,
   StoredCamera,
 } from "../utils/storage";
@@ -30,6 +31,12 @@ interface UsePersistedCameraResult {
   onAddCamera: () => void;
   onDeleteCamera: (id: string) => void;
   onSelectCamera: (id: string) => void;
+  onImportCamera: (data: {
+    metadata: CameraMetadata;
+    readings: ShutterReading[];
+    actions: string[];
+    notes: string;
+  }) => void;
 }
 
 export function usePersistedCamera(): UsePersistedCameraResult {
@@ -74,6 +81,18 @@ export function usePersistedCamera(): UsePersistedCameraResult {
     setData((prev) => switchCamera(prev, id));
   }, []);
 
+  const onImportCamera = useCallback(
+    (importedData: {
+      metadata: CameraMetadata;
+      readings: ShutterReading[];
+      actions: string[];
+      notes: string;
+    }) => {
+      setData((prev) => importCamera(prev, importedData));
+    },
+    []
+  );
+
   const camera = getCurrentCamera(data);
   return {
     metadata: camera.metadata,
@@ -90,5 +109,6 @@ export function usePersistedCamera(): UsePersistedCameraResult {
     onAddCamera,
     onDeleteCamera,
     onSelectCamera,
+    onImportCamera,
   };
 }

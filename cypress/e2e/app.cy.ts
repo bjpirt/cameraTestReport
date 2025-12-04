@@ -19,8 +19,8 @@ describe("App", () => {
 
     it("allows editing metadata fields", () => {
       cy.contains("e.g. Nikon").click();
-      cy.get("input").first().clear().type("Canon");
-      cy.get("input").first().blur();
+      cy.get("#field-make").clear().type("Canon");
+      cy.get("#field-make").blur();
       cy.contains("Canon");
     });
 
@@ -118,8 +118,8 @@ describe("App", () => {
     it("persists camera metadata after page reload", () => {
       // Edit the make field
       cy.contains("e.g. Nikon").click();
-      cy.get("input").first().clear().type("Canon");
-      cy.get("input").first().blur();
+      cy.get("#field-make").clear().type("Canon");
+      cy.get("#field-make").blur();
 
       // Verify the change is visible
       cy.contains("Canon").should("exist");
@@ -165,8 +165,8 @@ describe("App", () => {
     it("persists multiple changes together", () => {
       // Make multiple changes
       cy.contains("e.g. Nikon").click();
-      cy.get("input").first().clear().type("Pentax");
-      cy.get("input").first().blur();
+      cy.get("#field-make").clear().type("Pentax");
+      cy.get("#field-make").blur();
 
       cy.get('input[type="number"]').eq(0).type("1.1");
       cy.get('input[type="number"]').eq(1).type("2.1");
@@ -343,8 +343,8 @@ describe("App", () => {
     it("creates a new report", () => {
       // Add some data to the first report
       cy.contains("e.g. Nikon").click();
-      cy.get("input").first().clear().type("Canon");
-      cy.get("input").first().blur();
+      cy.get("#field-make").clear().type("Canon");
+      cy.get("#field-make").blur();
 
       // Open sidebar and create new report
       cy.get('[aria-label="Open reports menu"]').click();
@@ -363,8 +363,8 @@ describe("App", () => {
     it("switches between reports", () => {
       // Add data to first report
       cy.contains("e.g. Nikon").click();
-      cy.get("input").first().clear().type("Canon");
-      cy.get("input").first().blur();
+      cy.get("#field-make").clear().type("Canon");
+      cy.get("#field-make").blur();
 
       // Create second report with different data
       cy.get('[aria-label="Open reports menu"]').click();
@@ -372,8 +372,8 @@ describe("App", () => {
       cy.get('[aria-label="Close sidebar"]').click();
 
       cy.contains("e.g. Nikon").click();
-      cy.get("input").first().clear().type("Nikon");
-      cy.get("input").first().blur();
+      cy.get("#field-make").clear().type("Nikon");
+      cy.get("#field-make").blur();
 
       // Open sidebar - both reports should be listed
       cy.get('[aria-label="Open reports menu"]').click();
@@ -409,23 +409,36 @@ describe("App", () => {
       cy.contains("1 report").should("exist");
     });
 
-    it("cannot delete the last report", () => {
+    it("deleting the last report creates a new empty one", () => {
+      // Add some data to the report
+      cy.contains("e.g. Nikon").click();
+      cy.get("#field-make").clear().type("Canon");
+      cy.get("#field-make").blur();
+
       cy.get('[aria-label="Open reports menu"]').click();
       cy.contains("1 report").should("exist");
 
-      // Try to delete the only report
+      // Delete the only report
       cy.get('[aria-label="Delete report"]').click();
       cy.get('[aria-label="Confirm delete"]').click();
 
-      // Should still have 1 report
+      // Sidebar should close and we should have a fresh empty report
+      cy.get('[role="dialog"]').should("not.be.visible");
+
+      // The main content should show empty fields (not "Canon")
+      cy.contains("Canon").should("not.exist");
+      cy.contains("e.g. Nikon").should("exist");
+
+      // Re-open sidebar to verify we still have 1 report
+      cy.get('[aria-label="Open reports menu"]').click();
       cy.contains("1 report").should("exist");
     });
 
     it("displays reports sorted by service date (most recent first)", () => {
       // Create first report with an older date
       cy.contains("e.g. Nikon").click();
-      cy.get("input").first().clear().type("OldCamera");
-      cy.get("input").first().blur();
+      cy.get("#field-make").clear().type("OldCamera");
+      cy.get("#field-make").blur();
 
       // Change service date to older date - find within Camera Information section
       cy.contains("Camera Information")
@@ -442,8 +455,8 @@ describe("App", () => {
       cy.get('[aria-label="Close sidebar"]').click();
 
       cy.contains("e.g. Nikon").click();
-      cy.get("input").first().clear().type("NewCamera");
-      cy.get("input").first().blur();
+      cy.get("#field-make").clear().type("NewCamera");
+      cy.get("#field-make").blur();
 
       // Open sidebar and check order
       cy.get('[aria-label="Open reports menu"]').click();
@@ -456,16 +469,16 @@ describe("App", () => {
     it("persists multiple reports after page reload", () => {
       // Create two reports
       cy.contains("e.g. Nikon").click();
-      cy.get("input").first().clear().type("Canon");
-      cy.get("input").first().blur();
+      cy.get("#field-make").clear().type("Canon");
+      cy.get("#field-make").blur();
 
       cy.get('[aria-label="Open reports menu"]').click();
       cy.contains("New Report").click();
       cy.get('[aria-label="Close sidebar"]').click();
 
       cy.contains("e.g. Nikon").click();
-      cy.get("input").first().clear().type("Nikon");
-      cy.get("input").first().blur();
+      cy.get("#field-make").clear().type("Nikon");
+      cy.get("#field-make").blur();
 
       // Reload
       cy.reload();
@@ -475,6 +488,134 @@ describe("App", () => {
       cy.contains("2 reports").should("exist");
       cy.contains("Canon").should("exist");
       cy.contains("Nikon").should("exist");
+    });
+
+    it("shows import button in sidebar footer", () => {
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.get('[aria-label="Import JSON report"]').should("be.visible");
+    });
+
+    it("imports a JSON report file", () => {
+      // Create a test JSON file content
+      const reportData = {
+        metadata: {
+          make: "Leica",
+          model: "M6",
+          serialNumber: "ABC123",
+          customerName: "Test Import",
+          serviceDate: "2024-06-15",
+          createdTimestamp: "2024-06-15T10:00:00.000Z",
+        },
+        readings: [
+          { id: "r1", expectedTime: "1/1000", measuredMs: 1.05 },
+          { id: "r2", expectedTime: "1/500", measuredMs: 2.1 },
+        ],
+        actions: ["CLA performed", "Shutter replaced"],
+        notes: "Imported test report",
+        exportedAt: "2024-06-15T12:00:00.000Z",
+      };
+
+      // Open sidebar
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.contains("1 report").should("exist");
+
+      // Upload the file using the hidden input
+      cy.get('input[type="file"]').selectFile(
+        {
+          contents: Cypress.Buffer.from(JSON.stringify(reportData)),
+          fileName: "test-report.json",
+          mimeType: "application/json",
+        },
+        { force: true }
+      );
+
+      // Sidebar should close after import
+      cy.get('[role="dialog"]').should("not.be.visible");
+
+      // Verify the imported data is displayed
+      cy.contains("Leica").should("exist");
+      cy.contains("M6").should("exist");
+      cy.contains("ABC123").should("exist");
+      cy.contains("Test Import").should("exist");
+      cy.contains("CLA performed").should("exist");
+      cy.contains("Shutter replaced").should("exist");
+
+      // Verify measurement was imported
+      cy.get('input[type="number"]').first().should("have.value", "1.05");
+
+      // Verify we now have 2 reports
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.contains("2 reports").should("exist");
+    });
+
+    it("shows error for invalid JSON file", () => {
+      cy.get('[aria-label="Open reports menu"]').click();
+
+      // Upload invalid JSON
+      cy.get('input[type="file"]').selectFile(
+        {
+          contents: Cypress.Buffer.from("not valid json{"),
+          fileName: "invalid.json",
+          mimeType: "application/json",
+        },
+        { force: true }
+      );
+
+      // Should show alert (we'll check the sidebar is still open)
+      cy.on("window:alert", (text) => {
+        expect(text).to.equal("Failed to parse JSON file");
+      });
+    });
+
+    it("shows error for JSON missing required fields", () => {
+      cy.get('[aria-label="Open reports menu"]').click();
+
+      // Upload JSON without required fields
+      cy.get('input[type="file"]').selectFile(
+        {
+          contents: Cypress.Buffer.from(JSON.stringify({ foo: "bar" })),
+          fileName: "incomplete.json",
+          mimeType: "application/json",
+        },
+        { force: true }
+      );
+
+      cy.on("window:alert", (text) => {
+        expect(text).to.equal("Invalid report file format");
+      });
+    });
+  });
+
+  describe("JSON Export", () => {
+    beforeEach(() => {
+      cy.clearLocalStorage();
+      cy.visit("/");
+    });
+
+    it("shows download button in header", () => {
+      cy.get('[aria-label="Download report as JSON"]').should("be.visible");
+    });
+
+    it("download button has correct tooltip", () => {
+      cy.get('[aria-label="Download report as JSON"]').should(
+        "have.attr",
+        "title",
+        "Download as JSON"
+      );
+    });
+
+    it("triggers download when clicked", () => {
+      // Add some data first - use the specific field ID to avoid the hidden file input
+      cy.contains("e.g. Nikon").click();
+      cy.get("#field-make").clear().type("Canon");
+      cy.get("#field-make").blur();
+
+      // Click download - Cypress can't easily verify file downloads,
+      // but we can verify the button exists and is clickable
+      cy.get('[aria-label="Download report as JSON"]').click();
+
+      // The test passes if no errors occur
+      // For actual download verification, we'd need cypress-downloadfile plugin
     });
   });
 });

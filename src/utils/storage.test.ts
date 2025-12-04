@@ -6,6 +6,8 @@ import {
   createDefaultStoredData,
   getCurrentCamera,
   updateCurrentCamera,
+  deleteCamera,
+  importCamera,
   StoredData,
 } from "./storage";
 
@@ -231,6 +233,224 @@ describe("storage", () => {
         metadata: { ...getCurrentCamera(data).metadata, make: "Sony" },
       });
       expect(getCurrentCamera(updated).createdAt).toBe(originalCreatedAt);
+    });
+  });
+
+  describe("deleteCamera", () => {
+    it("deletes a camera when multiple exist", () => {
+      const data = createDefaultStoredData();
+      const firstCameraId = data.currentCameraId;
+
+      // Add a second camera
+      const secondCamera = {
+        id: "camera-2",
+        metadata: {
+          make: "Canon",
+          model: "AE-1",
+          serialNumber: "999",
+          customerName: "User 2",
+          serviceDate: "2024-02-01",
+          createdTimestamp: "2024-02-01T10:00:00.000Z",
+        },
+        readings: [],
+        actions: [],
+        notes: "",
+        createdAt: "2024-02-01T00:00:00.000Z",
+        updatedAt: "2024-02-01T00:00:00.000Z",
+      };
+      data.cameras["camera-2"] = secondCamera;
+
+      const updated = deleteCamera(data, firstCameraId);
+
+      expect(Object.keys(updated.cameras)).toHaveLength(1);
+      expect(updated.cameras[firstCameraId]).toBeUndefined();
+      expect(updated.cameras["camera-2"]).toBeDefined();
+    });
+
+    it("switches to another camera when deleting the current one", () => {
+      const data = createDefaultStoredData();
+      const firstCameraId = data.currentCameraId;
+
+      // Add a second camera
+      data.cameras["camera-2"] = {
+        id: "camera-2",
+        metadata: {
+          make: "Canon",
+          model: "AE-1",
+          serialNumber: "999",
+          customerName: "User 2",
+          serviceDate: "2024-02-01",
+          createdTimestamp: "2024-02-01T10:00:00.000Z",
+        },
+        readings: [],
+        actions: [],
+        notes: "",
+        createdAt: "2024-02-01T00:00:00.000Z",
+        updatedAt: "2024-02-01T00:00:00.000Z",
+      };
+
+      const updated = deleteCamera(data, firstCameraId);
+
+      expect(updated.currentCameraId).toBe("camera-2");
+    });
+
+    it("creates a new empty camera when deleting the last one", () => {
+      const data = createDefaultStoredData();
+      const originalCameraId = data.currentCameraId;
+
+      const updated = deleteCamera(data, originalCameraId);
+
+      expect(Object.keys(updated.cameras)).toHaveLength(1);
+      expect(updated.cameras[originalCameraId]).toBeUndefined();
+      expect(updated.currentCameraId).not.toBe(originalCameraId);
+      expect(updated.cameras[updated.currentCameraId]).toBeDefined();
+      expect(updated.cameras[updated.currentCameraId].metadata.make).toBe("");
+    });
+
+    it("preserves non-current camera when deleting another", () => {
+      const data = createDefaultStoredData();
+      const firstCameraId = data.currentCameraId;
+
+      // Add a second camera
+      data.cameras["camera-2"] = {
+        id: "camera-2",
+        metadata: {
+          make: "Canon",
+          model: "AE-1",
+          serialNumber: "999",
+          customerName: "User 2",
+          serviceDate: "2024-02-01",
+          createdTimestamp: "2024-02-01T10:00:00.000Z",
+        },
+        readings: [],
+        actions: [],
+        notes: "",
+        createdAt: "2024-02-01T00:00:00.000Z",
+        updatedAt: "2024-02-01T00:00:00.000Z",
+      };
+
+      const updated = deleteCamera(data, "camera-2");
+
+      expect(updated.currentCameraId).toBe(firstCameraId);
+      expect(updated.cameras[firstCameraId]).toBeDefined();
+      expect(updated.cameras["camera-2"]).toBeUndefined();
+    });
+  });
+
+  describe("importCamera", () => {
+    it("creates a new camera with imported data", () => {
+      const data = createDefaultStoredData();
+      const importedData = {
+        metadata: {
+          make: "Leica",
+          model: "M6",
+          serialNumber: "ABC123",
+          customerName: "Import User",
+          serviceDate: "2024-03-15",
+          createdTimestamp: "2024-03-15T10:00:00.000Z",
+        },
+        readings: [{ id: "r1", expectedTime: "1/1000", measuredMs: 1.05 }],
+        actions: ["CLA performed"],
+        notes: "Imported from backup",
+      };
+
+      const updated = importCamera(data, importedData);
+
+      const newCamera = getCurrentCamera(updated);
+      expect(newCamera.metadata.make).toBe("Leica");
+      expect(newCamera.metadata.model).toBe("M6");
+      expect(newCamera.readings).toHaveLength(1);
+      expect(newCamera.actions).toEqual(["CLA performed"]);
+      expect(newCamera.notes).toBe("Imported from backup");
+    });
+
+    it("switches to the imported camera", () => {
+      const data = createDefaultStoredData();
+      const originalCameraId = data.currentCameraId;
+
+      const updated = importCamera(data, {
+        metadata: {
+          make: "Pentax",
+          model: "K1000",
+          serialNumber: "999",
+          customerName: "Test",
+          serviceDate: "2024-01-01",
+          createdTimestamp: "2024-01-01T10:00:00.000Z",
+        },
+        readings: [],
+        actions: [],
+        notes: "",
+      });
+
+      expect(updated.currentCameraId).not.toBe(originalCameraId);
+      expect(getCurrentCamera(updated).metadata.make).toBe("Pentax");
+    });
+
+    it("preserves existing cameras", () => {
+      const data = createDefaultStoredData();
+      const originalCameraId = data.currentCameraId;
+
+      const updated = importCamera(data, {
+        metadata: {
+          make: "Olympus",
+          model: "OM-1",
+          serialNumber: "111",
+          customerName: "Test",
+          serviceDate: "2024-01-01",
+          createdTimestamp: "2024-01-01T10:00:00.000Z",
+        },
+        readings: [],
+        actions: [],
+        notes: "",
+      });
+
+      expect(Object.keys(updated.cameras)).toHaveLength(2);
+      expect(updated.cameras[originalCameraId]).toBeDefined();
+    });
+
+    it("generates new timestamps for imported camera", () => {
+      const data = createDefaultStoredData();
+
+      const updated = importCamera(data, {
+        metadata: {
+          make: "Minolta",
+          model: "X-700",
+          serialNumber: "222",
+          customerName: "Test",
+          serviceDate: "2024-01-01",
+          createdTimestamp: "2024-01-01T10:00:00.000Z",
+        },
+        readings: [],
+        actions: [],
+        notes: "",
+      });
+
+      const newCamera = getCurrentCamera(updated);
+      expect(newCamera.createdAt).toBeDefined();
+      expect(newCamera.updatedAt).toBeDefined();
+    });
+
+    it("generates a unique camera id", () => {
+      const data = createDefaultStoredData();
+
+      const updated = importCamera(data, {
+        metadata: {
+          make: "Yashica",
+          model: "FX-3",
+          serialNumber: "333",
+          customerName: "Test",
+          serviceDate: "2024-01-01",
+          createdTimestamp: "2024-01-01T10:00:00.000Z",
+        },
+        readings: [],
+        actions: [],
+        notes: "",
+      });
+
+      expect(updated.currentCameraId).toMatch(/^camera-/);
+      expect(updated.cameras[updated.currentCameraId].id).toBe(
+        updated.currentCameraId
+      );
     });
   });
 });

@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { StoredCamera } from "../utils/storage";
+import { CameraMetadata } from "../types/CameraMetadata";
+import { ShutterReading } from "../types/ShutterReading";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -9,6 +11,12 @@ interface SidebarProps {
   onSelectCamera: (id: string) => void;
   onAddCamera: () => void;
   onDeleteCamera: (id: string) => void;
+  onImportCamera: (data: {
+    metadata: CameraMetadata;
+    readings: ShutterReading[];
+    actions: string[];
+    notes: string;
+  }) => void;
 }
 
 export function Sidebar({
@@ -19,8 +27,10 @@ export function Sidebar({
   onSelectCamera,
   onAddCamera,
   onDeleteCamera,
+  onImportCamera,
 }: SidebarProps) {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sortedCameras = [...cameras].sort((a, b) => {
     // Sort by service date first, then by createdTimestamp for same-day reports
@@ -47,8 +57,12 @@ export function Sidebar({
 
   const handleDelete = (id: string) => {
     if (confirmDeleteId === id) {
+      const isLastCamera = cameras.length <= 1;
       onDeleteCamera(id);
       setConfirmDeleteId(null);
+      if (isLastCamera) {
+        onClose();
+      }
     } else {
       setConfirmDeleteId(id);
     }
@@ -57,6 +71,41 @@ export function Sidebar({
   const handleSelect = (id: string) => {
     onSelectCamera(id);
     onClose();
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const data = JSON.parse(content);
+
+        if (data.metadata && data.readings) {
+          onImportCamera({
+            metadata: data.metadata,
+            readings: data.readings,
+            actions: data.actions || [],
+            notes: data.notes || "",
+          });
+          onClose();
+        } else {
+          alert("Invalid report file format");
+        }
+      } catch {
+        alert("Failed to parse JSON file");
+      }
+    };
+    reader.readAsText(file);
+
+    // Reset the input so the same file can be selected again
+    event.target.value = "";
   };
 
   return (
@@ -200,8 +249,37 @@ export function Sidebar({
           </div>
 
           {/* Footer */}
-          <div className="p-4 border-t border-gray-200 text-sm text-gray-500">
-            {cameras.length} report{cameras.length !== 1 ? "s" : ""}
+          <div className="p-4 border-t border-gray-200 flex items-center justify-between">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <p className="text-sm text-gray-500">
+              {cameras.length} report{cameras.length !== 1 ? "s" : ""}
+            </p>
+            <button
+              onClick={handleImportClick}
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
+              aria-label="Import JSON report"
+              title="Import JSON"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
