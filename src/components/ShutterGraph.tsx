@@ -89,8 +89,8 @@ export const ShutterGraph = forwardRef<ShutterGraphRef, ShutterGraphProps>(
                 axisLine={{ stroke: "#9ca3af" }}
               />
               <YAxis
-                domain={[-1, 1]}
-                ticks={[-1, -0.5, 0, 0.5, 1]}
+                domain={[-0.5, 0.5]}
+                ticks={[-0.5, -0.25, 0, 0.25, 0.5]}
                 tick={{ fontSize: 11 }}
                 tickLine={{ stroke: "#9ca3af" }}
                 axisLine={{ stroke: "#9ca3af" }}

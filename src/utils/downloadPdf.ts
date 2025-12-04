@@ -247,6 +247,7 @@ function createReadingsSection(readings: ShutterReading[]): Content {
           paddingBottom: () => 2,
         },
       },
+      { text: "", pageBreak: "after" },
     ],
   };
 }
