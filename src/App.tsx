@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { CameraMetadataForm } from "./components/CameraMetadataForm";
 import { ShutterTestSection } from "./components/ShutterTestSection";
 import { ActionsPerformed } from "./components/ActionsPerformed";
@@ -8,6 +8,14 @@ import { usePersistedCamera } from "./hooks/usePersistedCamera";
 
 export function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleNavigateToReadings = useCallback(() => {
+    const firstInput = document.getElementById("reading-input-0");
+    if (firstInput) {
+      firstInput.focus();
+    }
+  }, []);
+
   const {
     metadata,
     readings,
@@ -62,7 +70,11 @@ export function App() {
           </h1>
         </div>
         <div className="space-y-4">
-          <CameraMetadataForm metadata={metadata} onChange={setMetadata} />
+          <CameraMetadataForm
+            metadata={metadata}
+            onChange={setMetadata}
+            onNavigateToReadings={handleNavigateToReadings}
+          />
           <ShutterTestSection readings={readings} onChange={setReadings} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <ActionsPerformed actions={actions} onChange={setActions} />

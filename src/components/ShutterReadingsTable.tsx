@@ -67,6 +67,17 @@ export function ShutterReadingsTable({
     }
   };
 
+  const handleReadingKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "Enter" || (e.key === "Tab" && !e.shiftKey)) {
+      const nextIndex = index + 1;
+      if (nextIndex < readings.length) {
+        e.preventDefault();
+        const nextInput = document.getElementById(`reading-input-${nextIndex}`);
+        nextInput?.focus();
+      }
+    }
+  };
+
   const formatEvDiff = (ev: number): string => {
     const sign = ev >= 0 ? "+" : "";
     return `${sign}${ev.toFixed(2)}`;
@@ -90,7 +101,7 @@ export function ShutterReadingsTable({
         </tr>
       </thead>
       <tbody>
-        {readings.map((reading) => {
+        {readings.map((reading, index) => {
           const expectedMs = fractionToMs(reading.expectedTime);
           const hasReading = reading.measuredMs !== null;
           const actualFraction = hasReading
@@ -107,8 +118,10 @@ export function ShutterReadingsTable({
                 <input
                   type="number"
                   step="0.1"
+                  id={`reading-input-${index}`}
                   value={reading.measuredMs ?? ""}
                   onChange={(e) => handleMeasuredChange(reading.id, e.target.value)}
+                  onKeyDown={(e) => handleReadingKeyDown(e, index)}
                   className="w-20 px-2 py-0.5 border border-gray-300 rounded text-right font-mono
                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="—"

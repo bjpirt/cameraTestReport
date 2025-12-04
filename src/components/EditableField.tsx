@@ -6,6 +6,8 @@ interface EditableFieldProps {
   onChange: (value: string) => void;
   placeholder?: string;
   type?: "text" | "date" | "textarea";
+  onNext?: () => void;
+  inputId?: string;
 }
 
 export function EditableField({
@@ -14,6 +16,8 @@ export function EditableField({
   onChange,
   placeholder = "Click to edit",
   type = "text",
+  onNext,
+  inputId,
 }: EditableFieldProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -38,7 +42,20 @@ export function EditableField({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && type !== "textarea") {
-      inputRef.current?.blur();
+      e.preventDefault();
+      if (draft !== value) {
+        onChange(draft);
+      }
+      setIsEditing(false);
+      onNext?.();
+    }
+    if (e.key === "Tab" && !e.shiftKey && onNext) {
+      e.preventDefault();
+      if (draft !== value) {
+        onChange(draft);
+      }
+      setIsEditing(false);
+      onNext();
     }
     if (e.key === "Escape") {
       setDraft(value);
@@ -60,6 +77,7 @@ export function EditableField({
         type === "textarea" ? (
           <textarea
             ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+            id={inputId}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onBlur={handleBlur}
@@ -70,6 +88,7 @@ export function EditableField({
         ) : (
           <input
             ref={inputRef as React.RefObject<HTMLInputElement>}
+            id={inputId}
             type={type}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -81,6 +100,7 @@ export function EditableField({
       ) : (
         <div
           onClick={() => setIsEditing(true)}
+          data-field-id={inputId}
           className={displayClasses}
         >
           {value || (
