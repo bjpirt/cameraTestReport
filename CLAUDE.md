@@ -32,6 +32,15 @@ npm run test:watch   # Run tests in watch mode
 npm run typecheck    # TypeScript type checking
 npm run cypress      # Open Cypress UI for E2E tests
 npm run cypress:run  # Run Cypress tests headlessly
+npm run test:e2e     # Run E2E tests with auto-starting dev server
+```
+
+### Running Cypress in Claude Code
+
+Cypress requires `ELECTRON_RUN_AS_NODE` to be unset due to a macOS path resolution bug. Run E2E tests with:
+
+```bash
+unset ELECTRON_RUN_AS_NODE && npm run test:e2e
 ```
 
 ## Task Completion Checklist
