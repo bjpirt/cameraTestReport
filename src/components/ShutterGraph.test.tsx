@@ -2,12 +2,19 @@ import { render, screen } from "@testing-library/react";
 import { ShutterGraph } from "./ShutterGraph";
 import { ShutterReading } from "../types/ShutterReading";
 
+// Mock ResizeObserver for Recharts ResponsiveContainer
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 describe("ShutterGraph", () => {
-  it("renders placeholder text", () => {
+  it("renders graph title", () => {
     const readings: ShutterReading[] = [];
     render(<ShutterGraph readings={readings} />);
 
-    expect(screen.getByText("Graph Placeholder")).toBeInTheDocument();
+    expect(screen.getByText("Shutter Speed Graph")).toBeInTheDocument();
   });
 
   it("shows reading count", () => {

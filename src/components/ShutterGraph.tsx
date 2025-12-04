@@ -1,25 +1,124 @@
+import {
+  ComposedChart,
+  Line,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+} from "recharts";
 import { ShutterReading } from "../types/ShutterReading";
+import { fractionToMs, calculateEvDifference } from "../utils/shutter";
 
 interface ShutterGraphProps {
   readings: ShutterReading[];
 }
 
+interface ChartDataPoint {
+  expectedTime: string;
+  evDiff: number | null;
+  toleranceRange: [number, number];
+}
+
+function getToleranceForSpeed(expectedTime: string): number {
+  // 1/125 = 8ms, speeds faster than this get ±0.333 EV tolerance
+  // Slower speeds (1/125 and below) get ±0.25 EV tolerance
+  const ms = fractionToMs(expectedTime);
+  return ms >= 8 ? 0.25 : 0.333;
+}
+
+function prepareChartData(readings: ShutterReading[]): ChartDataPoint[] {
+  return readings.map((reading) => {
+    const expectedMs = fractionToMs(reading.expectedTime);
+    const tolerance = getToleranceForSpeed(reading.expectedTime);
+    const evDiff =
+      reading.measuredMs !== null
+        ? calculateEvDifference(expectedMs, reading.measuredMs)
+        : null;
+
+    return {
+      expectedTime: reading.expectedTime,
+      evDiff,
+      toleranceRange: [-tolerance, tolerance] as [number, number],
+    };
+  });
+}
+
 export function ShutterGraph({ readings }: ShutterGraphProps) {
   const measuredCount = readings.filter((r) => r.measuredMs !== null).length;
+  // Reverse so slower speeds (1s) are on the left, faster (1/1000) on the right
+  const chartData = prepareChartData(readings).reverse();
 
   return (
     <div className="bg-white rounded-lg shadow p-4 h-full flex flex-col">
       <h2 className="text-lg font-semibold text-gray-800 mb-3">
         Shutter Speed Graph
       </h2>
-      <div className="flex-1 flex items-center justify-center bg-gray-50 rounded border-2 border-dashed border-gray-300">
-        <div className="text-center text-gray-500">
-          <p className="text-lg font-medium">Graph Placeholder</p>
-          <p className="text-sm mt-1">
-            {measuredCount} of {readings.length} readings
-          </p>
-        </div>
+      <div className="flex-1 min-h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart
+            data={chartData}
+            margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              dataKey="expectedTime"
+              tick={{ fontSize: 11 }}
+              tickLine={{ stroke: "#9ca3af" }}
+              axisLine={{ stroke: "#9ca3af" }}
+            />
+            <YAxis
+              domain={[-1, 1]}
+              ticks={[-1, -0.5, 0, 0.5, 1]}
+              tick={{ fontSize: 11 }}
+              tickLine={{ stroke: "#9ca3af" }}
+              axisLine={{ stroke: "#9ca3af" }}
+              tickFormatter={(value) => `${value > 0 ? "+" : ""}${value}`}
+              label={{
+                value: "EV",
+                angle: -90,
+                position: "insideLeft",
+                style: { textAnchor: "middle", fontSize: 12 },
+              }}
+            />
+            <Tooltip
+              formatter={(value) => {
+                if (typeof value === "number") {
+                  return `${value > 0 ? "+" : ""}${value.toFixed(2)} EV`;
+                }
+                return "—";
+              }}
+              labelFormatter={(label) => `Expected: ${label}`}
+            />
+            <ReferenceLine y={0} stroke="#6b7280" strokeWidth={1} />
+            {/* Tolerance band */}
+            <Area
+              type="step"
+              dataKey="toleranceRange"
+              stroke="none"
+              fill="#22c55e"
+              fillOpacity={0.2}
+              isAnimationActive={false}
+            />
+            {/* Measured EV difference line */}
+            <Line
+              type="monotone"
+              dataKey="evDiff"
+              stroke="#2563eb"
+              strokeWidth={2}
+              dot={{ fill: "#2563eb", strokeWidth: 0, r: 4 }}
+              activeDot={{ r: 6, fill: "#1d4ed8" }}
+              connectNulls={false}
+              isAnimationActive={false}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
       </div>
+      <p className="text-sm text-gray-500 text-center mt-2">
+        {measuredCount} of {readings.length} readings
+      </p>
     </div>
   );
 }
