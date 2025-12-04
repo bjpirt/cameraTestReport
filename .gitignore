@@ -21,7 +21,7 @@ coverage/
 # Cypress
 cypress/screenshots/
 cypress/videos/
-cypres/downloads/
+cypress/downloads/
 
 # Environment
 .env

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { CameraMetadataForm } from "./components/CameraMetadataForm";
 import { ShutterTestSection } from "./components/ShutterTestSection";
 import { ActionsPerformed } from "./components/ActionsPerformed";
@@ -6,9 +6,12 @@ import { Notes } from "./components/Notes";
 import { Sidebar } from "./components/Sidebar";
 import { usePersistedCamera } from "./hooks/usePersistedCamera";
 import { downloadReportAsJson } from "./utils/downloadJson";
+import { downloadReportAsPdf } from "./utils/downloadPdf";
+import { ShutterGraphRef } from "./components/ShutterGraph";
 
 export function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const graphRef = useRef<ShutterGraphRef>(null);
 
   const handleNavigateToReadings = useCallback(() => {
     const firstInput = document.getElementById("reading-input-0");
@@ -36,6 +39,25 @@ export function App() {
 
   const handleDownloadJson = useCallback(() => {
     downloadReportAsJson(metadata, readings, actions, notes);
+  }, [metadata, readings, actions, notes]);
+
+  const handleDownloadPdf = useCallback(async () => {
+    let graphImageDataUrl: string | undefined;
+
+    if (graphRef.current) {
+      const dataUrl = await graphRef.current.captureAsDataUrl();
+      if (dataUrl) {
+        graphImageDataUrl = dataUrl;
+      }
+    }
+
+    await downloadReportAsPdf({
+      metadata,
+      readings,
+      actions,
+      notes,
+      graphImageDataUrl,
+    });
   }, [metadata, readings, actions, notes]);
 
   return (
@@ -76,6 +98,32 @@ export function App() {
             Camera Test Report
           </h1>
           <button
+            onClick={handleDownloadPdf}
+            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded"
+            aria-label="Download report as PDF"
+            title="Download as PDF"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 10v6m0 0l-3-3m3 3l3-3"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 21h12a2 2 0 002-2V8l-5-5H6a2 2 0 00-2 2v14a2 2 0 002 2z"
+              />
+            </svg>
+          </button>
+          <button
             onClick={handleDownloadJson}
             className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded"
             aria-label="Download report as JSON"
@@ -102,7 +150,7 @@ export function App() {
             onChange={setMetadata}
             onNavigateToReadings={handleNavigateToReadings}
           />
-          <ShutterTestSection readings={readings} onChange={setReadings} />
+          <ShutterTestSection ref={graphRef} readings={readings} onChange={setReadings} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <ActionsPerformed actions={actions} onChange={setActions} />
             <Notes notes={notes} onChange={setNotes} />
