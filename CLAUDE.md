@@ -57,6 +57,7 @@ This is a 100% client-side application with no backend. All data is stored in br
 - Use React Testing Library for component tests - test behavior, not implementation
 - Keep tests focused: one concept per test
 - Name tests descriptively: `it("calculates EV difference for faster shutter speed")`
+- **Cypress E2E tests**: After any changes to app behavior, update `cypress/e2e/` tests to cover the new functionality
 
 ### TypeScript
 
