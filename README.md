@@ -2,6 +2,8 @@
 
 A client-side web application for generating camera test reports.
 
+![Screenshot](docs/screenshot.png)
+
 ## Features
 
 - Log observed vs expected shutter speeds with EV difference calculations
