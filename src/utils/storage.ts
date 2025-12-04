@@ -8,6 +8,7 @@ export interface StoredCamera {
   id: string;
   metadata: CameraMetadata;
   readings: ShutterReading[];
+  actions: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -29,6 +30,7 @@ export function createDefaultStoredData(): StoredData {
         id: defaultId,
         metadata: createEmptyCameraMetadata(),
         readings: createDefaultReadings(),
+        actions: [],
         createdAt: now,
         updatedAt: now,
       },
@@ -70,7 +72,7 @@ export function getCurrentCamera(data: StoredData): StoredCamera {
 
 export function updateCurrentCamera(
   data: StoredData,
-  updates: Partial<Pick<StoredCamera, "metadata" | "readings">>
+  updates: Partial<Pick<StoredCamera, "metadata" | "readings" | "actions">>
 ): StoredData {
   const camera = data.cameras[data.currentCameraId];
   return {

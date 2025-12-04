@@ -93,6 +93,7 @@ describe("storage", () => {
               serviceDate: "2024-01-15",
             },
             readings: [{ id: "r1", expectedTime: "1/1000", measuredMs: 1.1 }],
+            actions: ["Cleaned shutter"],
             createdAt: "2024-01-01T00:00:00.000Z",
             updatedAt: "2024-01-15T00:00:00.000Z",
           },

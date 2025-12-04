@@ -179,5 +179,52 @@ describe("App", () => {
       cy.get('input[type="number"]').eq(0).should("have.value", "1.1");
       cy.get('input[type="number"]').eq(1).should("have.value", "2.1");
     });
+
+    it("persists actions after page reload", () => {
+      // Add an action
+      cy.get('input[placeholder="Enter action..."]').type("Cleaned shutter");
+      cy.contains("button", "Add").click();
+
+      // Verify it was added
+      cy.contains("Cleaned shutter").should("exist");
+
+      // Reload
+      cy.reload();
+
+      // Verify the action persisted
+      cy.contains("Cleaned shutter").should("exist");
+    });
+  });
+
+  describe("Actions Performed", () => {
+    it("displays actions section", () => {
+      cy.contains("Actions Performed");
+    });
+
+    it("shows empty state when no actions", () => {
+      cy.clearLocalStorage();
+      cy.visit("/");
+      cy.contains("No actions recorded");
+    });
+
+    it("allows adding actions", () => {
+      cy.clearLocalStorage();
+      cy.visit("/");
+      cy.get('input[placeholder="Enter action..."]').type("Replaced curtain");
+      cy.contains("button", "Add").click();
+      cy.contains("Replaced curtain").should("exist");
+    });
+
+    it("allows removing actions", () => {
+      cy.clearLocalStorage();
+      cy.visit("/");
+      cy.get('input[placeholder="Enter action..."]').type("Test action");
+      cy.contains("button", "Add").click();
+      cy.contains("Test action").should("exist");
+
+      cy.get('[aria-label="Remove action"]').click();
+      cy.contains("Test action").should("not.exist");
+      cy.contains("No actions recorded").should("exist");
+    });
   });
 });
