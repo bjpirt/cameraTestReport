@@ -81,7 +81,7 @@ describe("usePersistedCamera", () => {
 
     // Check localStorage was updated
     expect(localStorageMock.setItem).toHaveBeenCalled();
-    const savedData = JSON.parse(mockStorage["shutterSpeedReport"]);
+    const savedData = JSON.parse(mockStorage["cameraTestReport"]);
     const cameraId = savedData.currentCameraId;
     expect(savedData.cameras[cameraId].metadata.make).toBe("Canon");
   });
@@ -106,7 +106,7 @@ describe("usePersistedCamera", () => {
     });
 
     // Check localStorage was updated
-    const savedData = JSON.parse(mockStorage["shutterSpeedReport"]);
+    const savedData = JSON.parse(mockStorage["cameraTestReport"]);
     const cameraId = savedData.currentCameraId;
     expect(savedData.cameras[cameraId].readings[0].expectedTime).toBe("1/2000");
   });

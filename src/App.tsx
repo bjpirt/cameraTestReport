@@ -66,7 +66,7 @@ export function App() {
             </svg>
           </button>
           <h1 className="text-2xl font-bold text-gray-900">
-            Shutter Speed Report
+            Camera Test Report
           </h1>
         </div>
         <div className="space-y-4">

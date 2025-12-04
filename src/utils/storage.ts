@@ -1,7 +1,7 @@
 import { CameraMetadata, createEmptyCameraMetadata } from "../types/CameraMetadata";
 import { ShutterReading, createDefaultReadings } from "../types/ShutterReading";
 
-const STORAGE_KEY = "shutterSpeedReport";
+const STORAGE_KEY = "cameraTestReport";
 const CURRENT_VERSION = 1;
 
 export interface StoredCamera {

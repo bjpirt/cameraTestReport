@@ -1,7 +1,7 @@
 {
-  "name": "shutter-speed-report",
+  "name": "camera-test-report",
   "version": "1.0.0",
-  "description": "Client-side web application for generating camera shutter speed service reports",
+  "description": "Client-side web application for generating camera test reports",
   "type": "module",
   "scripts": {
     "build": "node esbuild.config.js",

@@ -1,6 +1,6 @@
-# Shutter Speed Report
+# Camera Test Report
 
-A client-side web application for generating camera shutter speed service reports.
+A client-side web application for generating camera test reports.
 
 ## Features
 

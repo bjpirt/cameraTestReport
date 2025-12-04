@@ -4,7 +4,7 @@ describe("App", () => {
   });
 
   it("loads the application", () => {
-    cy.contains("Shutter Speed Report");
+    cy.contains("Camera Test Report");
   });
 
   describe("Camera Metadata", () => {

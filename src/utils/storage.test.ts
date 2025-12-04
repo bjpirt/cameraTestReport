@@ -101,7 +101,7 @@ describe("storage", () => {
           },
         },
       };
-      mockStorage["shutterSpeedReport"] = JSON.stringify(stored);
+      mockStorage["cameraTestReport"] = JSON.stringify(stored);
 
       const data = loadData();
       expect(data.cameras["test-camera"].metadata.make).toBe("Nikon");
@@ -127,7 +127,7 @@ describe("storage", () => {
           },
         },
       };
-      mockStorage["shutterSpeedReport"] = JSON.stringify(oldData);
+      mockStorage["cameraTestReport"] = JSON.stringify(oldData);
 
       const data = loadData();
       expect(data.cameras["old-camera"].actions).toEqual([]);
@@ -135,19 +135,19 @@ describe("storage", () => {
     });
 
     it("returns default data when stored data is invalid JSON", () => {
-      mockStorage["shutterSpeedReport"] = "not valid json{";
+      mockStorage["cameraTestReport"] = "not valid json{";
       const data = loadData();
       expect(data.version).toBe(1);
     });
 
     it("returns default data when stored data is missing version", () => {
-      mockStorage["shutterSpeedReport"] = JSON.stringify({ cameras: {} });
+      mockStorage["cameraTestReport"] = JSON.stringify({ cameras: {} });
       const data = loadData();
       expect(data.version).toBe(1);
     });
 
     it("returns default data when currentCameraId not in cameras", () => {
-      mockStorage["shutterSpeedReport"] = JSON.stringify({
+      mockStorage["cameraTestReport"] = JSON.stringify({
         version: 1,
         currentCameraId: "missing",
         cameras: {},
@@ -162,7 +162,7 @@ describe("storage", () => {
       const data = createDefaultStoredData();
       saveData(data);
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        "shutterSpeedReport",
+        "cameraTestReport",
         JSON.stringify(data)
       );
     });
@@ -172,7 +172,7 @@ describe("storage", () => {
     it("removes data from localStorage", () => {
       clearData();
       expect(localStorageMock.removeItem).toHaveBeenCalledWith(
-        "shutterSpeedReport"
+        "cameraTestReport"
       );
     });
   });
