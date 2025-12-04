@@ -27,6 +27,7 @@ describe("CameraMetadataForm", () => {
       serialNumber: "123456",
       customerName: "John Doe",
       serviceDate: "2025-12-04",
+      createdTimestamp: "2025-12-04T10:00:00.000Z",
     };
 
     render(

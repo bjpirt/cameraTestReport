@@ -68,6 +68,7 @@ describe("usePersistedCamera", () => {
       serialNumber: "12345",
       customerName: "John",
       serviceDate: "2024-06-01",
+      createdTimestamp: "2024-06-01T10:00:00.000Z",
     };
 
     act(() => {
@@ -127,6 +128,7 @@ describe("usePersistedCamera", () => {
         serialNumber: "999",
         customerName: "Test",
         serviceDate: "2024-01-01",
+        createdTimestamp: "2024-01-01T10:00:00.000Z",
       });
     });
 

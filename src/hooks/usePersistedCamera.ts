@@ -6,7 +6,12 @@ import {
   saveData,
   getCurrentCamera,
   updateCurrentCamera,
+  addCamera,
+  deleteCamera,
+  switchCamera,
+  getAllCameras,
   StoredData,
+  StoredCamera,
 } from "../utils/storage";
 
 interface UsePersistedCameraResult {
@@ -19,6 +24,12 @@ interface UsePersistedCameraResult {
   setActions: (actions: string[]) => void;
   setNotes: (notes: string) => void;
   isLoaded: boolean;
+  // Multi-camera support
+  cameras: StoredCamera[];
+  currentCameraId: string;
+  onAddCamera: () => void;
+  onDeleteCamera: (id: string) => void;
+  onSelectCamera: (id: string) => void;
 }
 
 export function usePersistedCamera(): UsePersistedCameraResult {
@@ -51,6 +62,18 @@ export function usePersistedCamera(): UsePersistedCameraResult {
     setData((prev) => updateCurrentCamera(prev, { notes }));
   }, []);
 
+  const onAddCamera = useCallback(() => {
+    setData((prev) => addCamera(prev));
+  }, []);
+
+  const onDeleteCamera = useCallback((id: string) => {
+    setData((prev) => deleteCamera(prev, id));
+  }, []);
+
+  const onSelectCamera = useCallback((id: string) => {
+    setData((prev) => switchCamera(prev, id));
+  }, []);
+
   const camera = getCurrentCamera(data);
   return {
     metadata: camera.metadata,
@@ -62,5 +85,10 @@ export function usePersistedCamera(): UsePersistedCameraResult {
     setActions,
     setNotes,
     isLoaded: true,
+    cameras: getAllCameras(data),
+    currentCameraId: data.currentCameraId,
+    onAddCamera,
+    onDeleteCamera,
+    onSelectCamera,
   };
 }

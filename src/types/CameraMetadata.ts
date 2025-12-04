@@ -6,6 +6,7 @@ export interface CameraMetadata {
   serialNumber: string;
   customerName: string;
   serviceDate: string;
+  createdTimestamp: string; // Full ISO timestamp for sorting
 }
 
 export function createEmptyCameraMetadata(): CameraMetadata {
@@ -15,5 +16,6 @@ export function createEmptyCameraMetadata(): CameraMetadata {
     serialNumber: "",
     customerName: "",
     serviceDate: getTodayDateString(),
+    createdTimestamp: new Date().toISOString(),
   };
 }

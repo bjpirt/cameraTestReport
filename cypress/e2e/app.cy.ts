@@ -226,4 +226,174 @@ describe("App", () => {
       cy.contains("No actions recorded").should("exist");
     });
   });
+
+  describe("Reports Sidebar", () => {
+    beforeEach(() => {
+      cy.clearLocalStorage();
+      cy.visit("/");
+    });
+
+    it("opens sidebar when hamburger menu clicked", () => {
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.get('[role="dialog"]').should("be.visible");
+      cy.contains("Reports").should("be.visible");
+    });
+
+    it("closes sidebar when close button clicked", () => {
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.get('[role="dialog"]').should("be.visible");
+      cy.get('[aria-label="Close sidebar"]').click();
+      cy.get('[role="dialog"]').should("not.be.visible");
+    });
+
+    it("closes sidebar when backdrop clicked", () => {
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.get('[role="dialog"]').should("be.visible");
+      // Click on the backdrop (left side outside the sidebar)
+      cy.get(".bg-black\\/30").click({ force: true });
+      cy.get('[role="dialog"]').should("not.be.visible");
+    });
+
+    it("shows 1 report by default", () => {
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.contains("1 report").should("exist");
+    });
+
+    it("creates a new report", () => {
+      // Add some data to the first report
+      cy.contains("e.g. Nikon").click();
+      cy.get("input").first().clear().type("Canon");
+      cy.get("input").first().blur();
+
+      // Open sidebar and create new report
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.contains("New Report").click();
+
+      // Should show 2 reports now
+      cy.contains("2 reports").should("exist");
+
+      // The sidebar should show both "Canon" (old report) and "Untitled Report" (new one)
+      cy.get('[role="dialog"]').within(() => {
+        cy.contains("Canon").should("exist");
+        cy.contains("Untitled Report").should("exist");
+      });
+    });
+
+    it("switches between reports", () => {
+      // Add data to first report
+      cy.contains("e.g. Nikon").click();
+      cy.get("input").first().clear().type("Canon");
+      cy.get("input").first().blur();
+
+      // Create second report with different data
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.contains("New Report").click();
+      cy.get('[aria-label="Close sidebar"]').click();
+
+      cy.contains("e.g. Nikon").click();
+      cy.get("input").first().clear().type("Nikon");
+      cy.get("input").first().blur();
+
+      // Open sidebar - both reports should be listed
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.get('[role="dialog"]').within(() => {
+        cy.contains("Canon").should("exist");
+        cy.contains("Nikon").should("exist");
+      });
+
+      // Click on Canon report to switch (sidebar closes after selection)
+      cy.contains("Canon").click();
+
+      // Main content should now show Canon
+      cy.contains("Camera Information")
+        .parent()
+        .within(() => {
+          cy.contains("Canon").should("exist");
+        });
+    });
+
+    it("deletes a report with confirmation", () => {
+      // Create a second report first
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.contains("New Report").click();
+      cy.contains("2 reports").should("exist");
+
+      // Click delete on a report (first click shows confirmation)
+      cy.get('[aria-label="Delete report"]').first().click();
+      // Should still have 2 reports (confirmation required)
+      cy.contains("2 reports").should("exist");
+
+      // Click again to confirm
+      cy.get('[aria-label="Confirm delete"]').click();
+      cy.contains("1 report").should("exist");
+    });
+
+    it("cannot delete the last report", () => {
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.contains("1 report").should("exist");
+
+      // Try to delete the only report
+      cy.get('[aria-label="Delete report"]').click();
+      cy.get('[aria-label="Confirm delete"]').click();
+
+      // Should still have 1 report
+      cy.contains("1 report").should("exist");
+    });
+
+    it("displays reports sorted by service date (most recent first)", () => {
+      // Create first report with an older date
+      cy.contains("e.g. Nikon").click();
+      cy.get("input").first().clear().type("OldCamera");
+      cy.get("input").first().blur();
+
+      // Change service date to older date - find within Camera Information section
+      cy.contains("Camera Information")
+        .parent()
+        .within(() => {
+          cy.contains(new Date().toISOString().split("T")[0]).click();
+          cy.get('input[type="date"]').clear().type("2020-01-01");
+          cy.get('input[type="date"]').blur();
+        });
+
+      // Create new report (will have today's date)
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.contains("New Report").click();
+      cy.get('[aria-label="Close sidebar"]').click();
+
+      cy.contains("e.g. Nikon").click();
+      cy.get("input").first().clear().type("NewCamera");
+      cy.get("input").first().blur();
+
+      // Open sidebar and check order
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.get('[role="dialog"]').within(() => {
+        // Get all report entries and verify NewCamera comes before OldCamera
+        cy.get(".cursor-pointer").first().should("contain", "NewCamera");
+      });
+    });
+
+    it("persists multiple reports after page reload", () => {
+      // Create two reports
+      cy.contains("e.g. Nikon").click();
+      cy.get("input").first().clear().type("Canon");
+      cy.get("input").first().blur();
+
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.contains("New Report").click();
+      cy.get('[aria-label="Close sidebar"]').click();
+
+      cy.contains("e.g. Nikon").click();
+      cy.get("input").first().clear().type("Nikon");
+      cy.get("input").first().blur();
+
+      // Reload
+      cy.reload();
+
+      // Verify both reports still exist
+      cy.get('[aria-label="Open reports menu"]').click();
+      cy.contains("2 reports").should("exist");
+      cy.contains("Canon").should("exist");
+      cy.contains("Nikon").should("exist");
+    });
+  });
 });

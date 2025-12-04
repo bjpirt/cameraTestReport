@@ -91,6 +91,7 @@ describe("storage", () => {
               serialNumber: "12345",
               customerName: "Test User",
               serviceDate: "2024-01-15",
+              createdTimestamp: "2024-01-15T10:00:00.000Z",
             },
             readings: [{ id: "r1", expectedTime: "1/1000", measuredMs: 1.1 }],
             actions: ["Cleaned shutter"],
@@ -194,6 +195,7 @@ describe("storage", () => {
           serialNumber: "999",
           customerName: "John",
           serviceDate: "2024-06-01",
+          createdTimestamp: "2024-06-01T10:00:00.000Z",
         },
       });
       expect(getCurrentCamera(updated).metadata.make).toBe("Canon");

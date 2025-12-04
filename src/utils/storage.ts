@@ -70,6 +70,10 @@ function migrateData(data: StoredData): StoredData {
     if (camera.notes === undefined) {
       camera.notes = "";
     }
+    // Add createdTimestamp if missing (use createdAt as fallback)
+    if (!camera.metadata.createdTimestamp) {
+      camera.metadata.createdTimestamp = camera.createdAt;
+    }
   }
   return data;
 }
@@ -102,6 +106,66 @@ export function updateCurrentCamera(
       },
     },
   };
+}
+
+export function addCamera(data: StoredData): StoredData {
+  const newId = generateCameraId();
+  const now = new Date().toISOString();
+  return {
+    ...data,
+    currentCameraId: newId,
+    cameras: {
+      ...data.cameras,
+      [newId]: {
+        id: newId,
+        metadata: createEmptyCameraMetadata(),
+        readings: createDefaultReadings(),
+        actions: [],
+        notes: "",
+        createdAt: now,
+        updatedAt: now,
+      },
+    },
+  };
+}
+
+export function deleteCamera(data: StoredData, cameraId: string): StoredData {
+  const cameraIds = Object.keys(data.cameras);
+
+  // Don't delete the last camera
+  if (cameraIds.length <= 1) {
+    return data;
+  }
+
+  const { [cameraId]: _deleted, ...remainingCameras } = data.cameras;
+  void _deleted; // Intentionally unused - we're removing this camera
+
+  // If deleting the current camera, switch to another one
+  let newCurrentId = data.currentCameraId;
+  if (cameraId === data.currentCameraId) {
+    const remainingIds = Object.keys(remainingCameras);
+    newCurrentId = remainingIds[0];
+  }
+
+  return {
+    ...data,
+    currentCameraId: newCurrentId,
+    cameras: remainingCameras,
+  };
+}
+
+export function switchCamera(data: StoredData, cameraId: string): StoredData {
+  if (!(cameraId in data.cameras)) {
+    return data;
+  }
+  return {
+    ...data,
+    currentCameraId: cameraId,
+  };
+}
+
+export function getAllCameras(data: StoredData): StoredCamera[] {
+  return Object.values(data.cameras);
 }
 
 function isValidStoredData(data: unknown): data is StoredData {
