@@ -8,29 +8,29 @@ A client-side web application for generating camera shutter speed service report
 
 ## Tech Stack
 
-- TypeScript with React
+- TypeScript 5.x with React 19
 - esbuild for bundling/compilation
 - ESLint for linting
 - Jest for React component testing
 - Cypress for browser/E2E testing
 
-## Build Commands
+## Development Setup
+
+Requires Node.js (managed via nvm). Run `nvm use` to ensure correct version.
+
+## Commands
 
 ```bash
-# Build (once configured)
-npm run build
-
-# Lint
-npm run lint
-
-# Unit tests
-npm test
-
-# Single test file
-npm test -- <test-file-name>
-
-# E2E tests
-npm run cypress
+npm run dev          # Start dev server at http://localhost:8000
+npm run build        # Production build to public/dist/
+npm run lint         # Run ESLint
+npm run lint:fix     # Run ESLint with auto-fix
+npm test             # Run Jest unit tests
+npm test -- <file>   # Run single test file
+npm run test:watch   # Run tests in watch mode
+npm run typecheck    # TypeScript type checking
+npm run cypress      # Open Cypress UI for E2E tests
+npm run cypress:run  # Run Cypress tests headlessly
 ```
 
 ## Architecture

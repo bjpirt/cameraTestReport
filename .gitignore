@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+public/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# Cypress
+cypress/screenshots/
+cypress/videos/
+
+# Environment
+.env
+.env.local
+
+.claude/settings.local.json
