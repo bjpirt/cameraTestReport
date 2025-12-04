@@ -9,6 +9,7 @@ export interface StoredCamera {
   metadata: CameraMetadata;
   readings: ShutterReading[];
   actions: string[];
+  notes: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,6 +32,7 @@ export function createDefaultStoredData(): StoredData {
         metadata: createEmptyCameraMetadata(),
         readings: createDefaultReadings(),
         actions: [],
+        notes: "",
         createdAt: now,
         updatedAt: now,
       },
@@ -52,10 +54,24 @@ export function loadData(): StoredData {
     if (!isValidStoredData(parsed)) {
       return createDefaultStoredData();
     }
-    return parsed;
+    return migrateData(parsed);
   } catch {
     return createDefaultStoredData();
   }
+}
+
+function migrateData(data: StoredData): StoredData {
+  // Add missing fields to cameras for backwards compatibility
+  for (const cameraId of Object.keys(data.cameras)) {
+    const camera = data.cameras[cameraId];
+    if (!camera.actions) {
+      camera.actions = [];
+    }
+    if (camera.notes === undefined) {
+      camera.notes = "";
+    }
+  }
+  return data;
 }
 
 export function saveData(data: StoredData): void {
@@ -72,7 +88,7 @@ export function getCurrentCamera(data: StoredData): StoredCamera {
 
 export function updateCurrentCamera(
   data: StoredData,
-  updates: Partial<Pick<StoredCamera, "metadata" | "readings" | "actions">>
+  updates: Partial<Pick<StoredCamera, "metadata" | "readings" | "actions" | "notes">>
 ): StoredData {
   const camera = data.cameras[data.currentCameraId];
   return {

@@ -13,9 +13,11 @@ interface UsePersistedCameraResult {
   metadata: CameraMetadata;
   readings: ShutterReading[];
   actions: string[];
+  notes: string;
   setMetadata: (metadata: CameraMetadata) => void;
   setReadings: (readings: ShutterReading[]) => void;
   setActions: (actions: string[]) => void;
+  setNotes: (notes: string) => void;
   isLoaded: boolean;
 }
 
@@ -45,14 +47,20 @@ export function usePersistedCamera(): UsePersistedCameraResult {
     setData((prev) => updateCurrentCamera(prev, { actions }));
   }, []);
 
+  const setNotes = useCallback((notes: string) => {
+    setData((prev) => updateCurrentCamera(prev, { notes }));
+  }, []);
+
   const camera = getCurrentCamera(data);
   return {
     metadata: camera.metadata,
     readings: camera.readings,
     actions: camera.actions,
+    notes: camera.notes,
     setMetadata,
     setReadings,
     setActions,
+    setNotes,
     isLoaded: true,
   };
 }

@@ -20,7 +20,7 @@ describe("App", () => {
     it("allows editing metadata fields", () => {
       cy.contains("e.g. Nikon").click();
       cy.get("input").first().clear().type("Canon");
-      cy.get("body").click(); // blur
+      cy.get("input").first().blur();
       cy.contains("Canon");
     });
 
@@ -119,7 +119,7 @@ describe("App", () => {
       // Edit the make field
       cy.contains("e.g. Nikon").click();
       cy.get("input").first().clear().type("Canon");
-      cy.get("body").click(); // blur
+      cy.get("input").first().blur();
 
       // Verify the change is visible
       cy.contains("Canon").should("exist");
@@ -166,7 +166,7 @@ describe("App", () => {
       // Make multiple changes
       cy.contains("e.g. Nikon").click();
       cy.get("input").first().clear().type("Pentax");
-      cy.get("body").click();
+      cy.get("input").first().blur();
 
       cy.get('input[type="number"]').eq(0).type("1.1");
       cy.get('input[type="number"]').eq(1).type("2.1");
@@ -181,9 +181,8 @@ describe("App", () => {
     });
 
     it("persists actions after page reload", () => {
-      // Add an action
-      cy.get('input[placeholder="Enter action..."]').type("Cleaned shutter");
-      cy.contains("button", "Add").click();
+      // Add an action - use Enter key to avoid ambiguous Add button
+      cy.get('input[placeholder="Enter action..."]').type("Cleaned shutter{enter}");
 
       // Verify it was added
       cy.contains("Cleaned shutter").should("exist");
@@ -210,16 +209,16 @@ describe("App", () => {
     it("allows adding actions", () => {
       cy.clearLocalStorage();
       cy.visit("/");
-      cy.get('input[placeholder="Enter action..."]').type("Replaced curtain");
-      cy.contains("button", "Add").click();
+      // Use Enter key to add action
+      cy.get('input[placeholder="Enter action..."]').type("Replaced curtain{enter}");
       cy.contains("Replaced curtain").should("exist");
     });
 
     it("allows removing actions", () => {
       cy.clearLocalStorage();
       cy.visit("/");
-      cy.get('input[placeholder="Enter action..."]').type("Test action");
-      cy.contains("button", "Add").click();
+      // Use Enter key to add action
+      cy.get('input[placeholder="Enter action..."]').type("Test action{enter}");
       cy.contains("Test action").should("exist");
 
       cy.get('[aria-label="Remove action"]').click();

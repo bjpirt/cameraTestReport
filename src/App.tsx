@@ -1,11 +1,20 @@
 import { CameraMetadataForm } from "./components/CameraMetadataForm";
 import { ShutterTestSection } from "./components/ShutterTestSection";
 import { ActionsPerformed } from "./components/ActionsPerformed";
+import { Notes } from "./components/Notes";
 import { usePersistedCamera } from "./hooks/usePersistedCamera";
 
 export function App() {
-  const { metadata, readings, actions, setMetadata, setReadings, setActions } =
-    usePersistedCamera();
+  const {
+    metadata,
+    readings,
+    actions,
+    notes,
+    setMetadata,
+    setReadings,
+    setActions,
+    setNotes,
+  } = usePersistedCamera();
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -17,6 +26,7 @@ export function App() {
         <ShutterTestSection readings={readings} onChange={setReadings} />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <ActionsPerformed actions={actions} onChange={setActions} />
+          <Notes notes={notes} onChange={setNotes} />
         </div>
       </div>
     </div>

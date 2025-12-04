@@ -94,6 +94,7 @@ describe("storage", () => {
             },
             readings: [{ id: "r1", expectedTime: "1/1000", measuredMs: 1.1 }],
             actions: ["Cleaned shutter"],
+            notes: "Test notes",
             createdAt: "2024-01-01T00:00:00.000Z",
             updatedAt: "2024-01-15T00:00:00.000Z",
           },
@@ -103,6 +104,33 @@ describe("storage", () => {
 
       const data = loadData();
       expect(data.cameras["test-camera"].metadata.make).toBe("Nikon");
+    });
+
+    it("migrates old data without actions or notes fields", () => {
+      const oldData = {
+        version: 1,
+        currentCameraId: "old-camera",
+        cameras: {
+          "old-camera": {
+            id: "old-camera",
+            metadata: {
+              make: "Canon",
+              model: "AE-1",
+              serialNumber: "999",
+              customerName: "Old User",
+              serviceDate: "2023-01-01",
+            },
+            readings: [],
+            createdAt: "2023-01-01T00:00:00.000Z",
+            updatedAt: "2023-01-01T00:00:00.000Z",
+          },
+        },
+      };
+      mockStorage["shutterSpeedReport"] = JSON.stringify(oldData);
+
+      const data = loadData();
+      expect(data.cameras["old-camera"].actions).toEqual([]);
+      expect(data.cameras["old-camera"].notes).toBe("");
     });
 
     it("returns default data when stored data is invalid JSON", () => {
