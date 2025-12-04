@@ -17,6 +17,8 @@ const postcssPlugin = {
 };
 
 const isServe = process.argv.includes("--serve");
+const portArg = process.argv.find((arg) => arg.startsWith("--port="));
+const port = portArg ? parseInt(portArg.split("=")[1], 10) : 8000;
 
 const buildOptions = {
   entryPoints: ["src/index.tsx", "src/styles.css"],
@@ -29,9 +31,9 @@ if (isServe) {
   const ctx = await esbuild.context(buildOptions);
   await ctx.serve({
     servedir: "public",
-    port: 8000,
+    port,
   });
-  console.log("Server running at http://localhost:8000");
+  console.log(`Server running at http://localhost:${port}`);
 } else {
   await esbuild.build(buildOptions);
   console.log("Build complete");

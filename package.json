@@ -12,7 +12,8 @@
     "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
     "cypress": "cypress open",
     "cypress:run": "cypress run",
-    "test:e2e": "start-server-and-test dev http://localhost:8000 cypress:run",
+    "dev:e2e": "node esbuild.config.js --serve --port=8001",
+    "test:e2e": "CYPRESS_BASE_URL=http://localhost:8001 start-server-and-test dev:e2e http://localhost:8001 cypress:run",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [
