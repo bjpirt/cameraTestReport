@@ -6,15 +6,15 @@ import { ShutterReading } from "../types/ShutterReading";
 
 describe("ShutterReadingsTable", () => {
   const mockReadings: ShutterReading[] = [
-    { id: "1", expectedTime: "1/1000", beforeMs: null, measuredMs: null },
-    { id: "2", expectedTime: "1/500", beforeMs: null, measuredMs: 2.1 },
-    { id: "3", expectedTime: "1/250", beforeMs: null, measuredMs: 4 },
+    { id: "1", expectedTime: "1/1000", beforeSamples: [], measurementSamples: [] },
+    { id: "2", expectedTime: "1/500", beforeSamples: [], measurementSamples: [2.1] },
+    { id: "3", expectedTime: "1/250", beforeSamples: [], measurementSamples: [4] },
   ];
 
   describe("with showBeforeColumn=false (default mode)", () => {
     it("renders table headers with Actual column", () => {
       render(
-        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={false} />
+        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={false} showMultipleMeasurements={false} />
       );
 
       expect(screen.getByText("Expected")).toBeInTheDocument();
@@ -26,7 +26,7 @@ describe("ShutterReadingsTable", () => {
 
     it("displays expected times", () => {
       render(
-        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={false} />
+        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={false} showMultipleMeasurements={false} />
       );
 
       expect(screen.getByText("1/1000")).toBeInTheDocument();
@@ -36,7 +36,7 @@ describe("ShutterReadingsTable", () => {
 
     it("displays measured values when present", () => {
       render(
-        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={false} />
+        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={false} showMultipleMeasurements={false} />
       );
 
       expect(screen.getByDisplayValue("2.1")).toBeInTheDocument();
@@ -47,18 +47,18 @@ describe("ShutterReadingsTable", () => {
       const user = userEvent.setup();
       const handleChange = jest.fn();
       const readings: ShutterReading[] = [
-        { id: "1", expectedTime: "1/1000", beforeMs: null, measuredMs: null },
+        { id: "1", expectedTime: "1/1000", beforeSamples: [], measurementSamples: [] },
       ];
 
       render(
-        <ShutterReadingsTable readings={readings} onChange={handleChange} showBeforeColumn={false} />
+        <ShutterReadingsTable readings={readings} onChange={handleChange} showBeforeColumn={false} showMultipleMeasurements={false} />
       );
 
       const input = screen.getByPlaceholderText("—");
       await user.type(input, "5");
 
       expect(handleChange).toHaveBeenCalledWith([
-        { id: "1", expectedTime: "1/1000", beforeMs: null, measuredMs: 5 },
+        { id: "1", expectedTime: "1/1000", beforeSamples: [], measurementSamples: [5] },
       ]);
     });
   });
@@ -66,7 +66,7 @@ describe("ShutterReadingsTable", () => {
   describe("with showBeforeColumn=true (before/after mode)", () => {
     it("renders table headers with Before and After columns", () => {
       render(
-        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={true} />
+        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={true} showMultipleMeasurements={false} />
       );
 
       expect(screen.getByText("Expected")).toBeInTheDocument();
@@ -78,7 +78,7 @@ describe("ShutterReadingsTable", () => {
 
     it("displays measured values when present", () => {
       render(
-        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={true} />
+        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={true} showMultipleMeasurements={false} />
       );
 
       expect(screen.getByDisplayValue("2.1")).toBeInTheDocument();
@@ -87,7 +87,7 @@ describe("ShutterReadingsTable", () => {
 
     it("displays EV difference", () => {
       render(
-        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={true} />
+        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={true} showMultipleMeasurements={false} />
       );
 
       const evCells = screen.getAllByText(/-?\d+\.\d+/);
@@ -98,11 +98,11 @@ describe("ShutterReadingsTable", () => {
       const user = userEvent.setup();
       const handleChange = jest.fn();
       const readings: ShutterReading[] = [
-        { id: "1", expectedTime: "1/1000", beforeMs: null, measuredMs: null },
+        { id: "1", expectedTime: "1/1000", beforeSamples: [], measurementSamples: [] },
       ];
 
       render(
-        <ShutterReadingsTable readings={readings} onChange={handleChange} showBeforeColumn={true} />
+        <ShutterReadingsTable readings={readings} onChange={handleChange} showBeforeColumn={true} showMultipleMeasurements={false} />
       );
 
       // Get the second input (after field - first is before)
@@ -110,13 +110,13 @@ describe("ShutterReadingsTable", () => {
       await user.type(inputs[1], "5");
 
       expect(handleChange).toHaveBeenCalledWith([
-        { id: "1", expectedTime: "1/1000", beforeMs: null, measuredMs: 5 },
+        { id: "1", expectedTime: "1/1000", beforeSamples: [], measurementSamples: [5] },
       ]);
     });
 
     it("shows dash for unmeasured readings in EV column", () => {
       render(
-        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={true} />
+        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={true} showMultipleMeasurements={false} />
       );
 
       // The first row has no after measurement, should show dash in EV diff

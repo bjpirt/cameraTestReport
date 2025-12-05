@@ -4,6 +4,7 @@ import type { TDocumentDefinitions, Content, TableCell } from "pdfmake/interface
 import { CameraMetadata } from "../types/CameraMetadata";
 import { ShutterReading } from "../types/ShutterReading";
 import { fractionToMs, calculateEvDifference } from "./shutter";
+import { calculateAverage, calculateStdDev } from "./statistics";
 
 // Initialize pdfmake with fonts
 pdfMake.vfs = pdfFonts.vfs;
@@ -14,13 +15,14 @@ interface PdfReportOptions {
   actions: string[];
   notes: string;
   showBeforeColumn: boolean;
+  showMultipleMeasurements: boolean;
   graphImageDataUrl?: string;
 }
 
 export async function downloadReportAsPdf(
   options: PdfReportOptions
 ): Promise<void> {
-  const { metadata, readings, actions, notes, showBeforeColumn, graphImageDataUrl } = options;
+  const { metadata, readings, actions, notes, showBeforeColumn, showMultipleMeasurements, graphImageDataUrl } = options;
 
   const docDefinition = createDocumentDefinition(
     metadata,
@@ -28,6 +30,7 @@ export async function downloadReportAsPdf(
     actions,
     notes,
     showBeforeColumn,
+    showMultipleMeasurements,
     graphImageDataUrl
   );
 
@@ -41,6 +44,7 @@ function createDocumentDefinition(
   actions: string[],
   notes: string,
   showBeforeColumn: boolean,
+  showMultipleMeasurements: boolean,
   graphImageDataUrl?: string
 ): TDocumentDefinitions {
   const content: Content[] = [
@@ -62,7 +66,7 @@ function createDocumentDefinition(
   }
 
   // Shutter Speed Readings Section
-  content.push(createReadingsSection(readings, showBeforeColumn));
+  content.push(createReadingsSection(readings, showBeforeColumn, showMultipleMeasurements));
 
   // Actions Section
   if (actions.length > 0) {
@@ -174,31 +178,83 @@ function createMetadataSection(metadata: CameraMetadata): Content {
   };
 }
 
-function createReadingsSection(readings: ShutterReading[], showBeforeColumn: boolean): Content {
-  const headerRow: TableCell[] = showBeforeColumn
-    ? [
+function createReadingsSection(
+  readings: ShutterReading[],
+  showBeforeColumn: boolean,
+  showMultipleMeasurements: boolean
+): Content {
+  // Helper to format average with count
+  const formatAvgWithCount = (samples: number[]): string => {
+    const avg = calculateAverage(samples);
+    if (avg === null) return "—";
+    return showMultipleMeasurements && samples.length > 1
+      ? `${avg.toFixed(1)} (${samples.length})`
+      : avg.toFixed(1);
+  };
+
+  // Helper to format std dev
+  const formatStdDev = (samples: number[]): string => {
+    const stdDev = calculateStdDev(samples);
+    if (stdDev === null) return "—";
+    return stdDev.toFixed(3);
+  };
+
+  // Build header row
+  let headerRow: TableCell[];
+  let widths: string[];
+
+  if (showMultipleMeasurements) {
+    if (showBeforeColumn) {
+      // Group before columns, then after columns
+      headerRow = [
+        { text: "Expected", style: "tableHeader", alignment: "center" },
+        { text: "Before (ms)", style: "tableHeader", alignment: "center" },
+        { text: "StdDev", style: "tableHeader", alignment: "center" },
+        { text: "After (ms)", style: "tableHeader", alignment: "center" },
+        { text: "StdDev", style: "tableHeader", alignment: "center" },
+        { text: "EV Diff", style: "tableHeader", alignment: "center" },
+      ];
+      widths = ["*", "*", "*", "*", "*", "*"];
+    } else {
+      headerRow = [
+        { text: "Expected", style: "tableHeader", alignment: "center" },
+        { text: "Actual (ms)", style: "tableHeader", alignment: "center" },
+        { text: "StdDev", style: "tableHeader", alignment: "center" },
+        { text: "EV Diff", style: "tableHeader", alignment: "center" },
+      ];
+      widths = ["*", "*", "*", "*"];
+    }
+  } else {
+    if (showBeforeColumn) {
+      headerRow = [
         { text: "Expected", style: "tableHeader", alignment: "center" },
         { text: "Before (ms)", style: "tableHeader", alignment: "center" },
         { text: "After (ms)", style: "tableHeader", alignment: "center" },
         { text: "EV Diff", style: "tableHeader", alignment: "center" },
-      ]
-    : [
+      ];
+      widths = ["*", "*", "*", "*"];
+    } else {
+      headerRow = [
         { text: "Expected", style: "tableHeader", alignment: "center" },
         { text: "Actual (ms)", style: "tableHeader", alignment: "center" },
         { text: "EV Diff", style: "tableHeader", alignment: "center" },
       ];
+      widths = ["*", "*", "*"];
+    }
+  }
 
   const dataRows: TableCell[][] = readings.map((reading) => {
     const expectedMs = fractionToMs(reading.expectedTime);
+    const measurementAvg = calculateAverage(reading.measurementSamples);
+    const beforeAvg = calculateAverage(reading.beforeSamples);
     let evDiff = "—";
     let evColor = "#000000";
 
-    if (reading.measuredMs !== null) {
-      const ev = calculateEvDifference(expectedMs, reading.measuredMs);
+    if (measurementAvg !== null) {
+      const ev = calculateEvDifference(expectedMs, measurementAvg);
       const sign = ev > 0 ? "+" : "";
       evDiff = `${sign}${ev.toFixed(2)}`;
 
-      // Color coding based on EV difference
       const absEv = Math.abs(ev);
       if (absEv > 0.5) {
         evColor = "#dc2626"; // red
@@ -209,41 +265,40 @@ function createReadingsSection(readings: ShutterReading[], showBeforeColumn: boo
       }
     }
 
-    if (showBeforeColumn) {
-      return [
-        { text: reading.expectedTime, style: "tableCell", alignment: "center" },
-        {
-          text: reading.beforeMs?.toFixed(2) ?? "—",
-          style: "tableCell",
-          alignment: "center",
-        },
-        {
-          text: reading.measuredMs?.toFixed(2) ?? "—",
-          style: "tableCell",
-          alignment: "center",
-        },
-        {
-          text: evDiff,
-          style: "tableCell",
-          alignment: "center",
-          color: evColor,
-        },
-      ];
+    if (showMultipleMeasurements) {
+      if (showBeforeColumn) {
+        // Group before columns, then after columns
+        return [
+          { text: reading.expectedTime, style: "tableCell", alignment: "center" },
+          { text: formatAvgWithCount(reading.beforeSamples), style: "tableCell", alignment: "center" },
+          { text: formatStdDev(reading.beforeSamples), style: "tableCell", alignment: "center" },
+          { text: formatAvgWithCount(reading.measurementSamples), style: "tableCell", alignment: "center" },
+          { text: formatStdDev(reading.measurementSamples), style: "tableCell", alignment: "center" },
+          { text: evDiff, style: "tableCell", alignment: "center", color: evColor },
+        ];
+      } else {
+        return [
+          { text: reading.expectedTime, style: "tableCell", alignment: "center" },
+          { text: formatAvgWithCount(reading.measurementSamples), style: "tableCell", alignment: "center" },
+          { text: formatStdDev(reading.measurementSamples), style: "tableCell", alignment: "center" },
+          { text: evDiff, style: "tableCell", alignment: "center", color: evColor },
+        ];
+      }
     } else {
-      return [
-        { text: reading.expectedTime, style: "tableCell", alignment: "center" },
-        {
-          text: reading.measuredMs?.toFixed(2) ?? "—",
-          style: "tableCell",
-          alignment: "center",
-        },
-        {
-          text: evDiff,
-          style: "tableCell",
-          alignment: "center",
-          color: evColor,
-        },
-      ];
+      if (showBeforeColumn) {
+        return [
+          { text: reading.expectedTime, style: "tableCell", alignment: "center" },
+          { text: beforeAvg?.toFixed(1) ?? "—", style: "tableCell", alignment: "center" },
+          { text: measurementAvg?.toFixed(1) ?? "—", style: "tableCell", alignment: "center" },
+          { text: evDiff, style: "tableCell", alignment: "center", color: evColor },
+        ];
+      } else {
+        return [
+          { text: reading.expectedTime, style: "tableCell", alignment: "center" },
+          { text: measurementAvg?.toFixed(1) ?? "—", style: "tableCell", alignment: "center" },
+          { text: evDiff, style: "tableCell", alignment: "center", color: evColor },
+        ];
+      }
     }
   });
 
@@ -253,7 +308,7 @@ function createReadingsSection(readings: ShutterReading[], showBeforeColumn: boo
       {
         table: {
           headerRows: 1,
-          widths: showBeforeColumn ? ["*", "*", "*", "*"] : ["*", "*", "*"],
+          widths,
           body: [headerRow, ...dataRows],
         },
         layout: {

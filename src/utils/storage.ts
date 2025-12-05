@@ -11,6 +11,7 @@ export interface StoredCamera {
   actions: string[];
   notes: string;
   showBeforeColumn: boolean;
+  showMultipleMeasurements: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -35,6 +36,7 @@ export function createDefaultStoredData(): StoredData {
         actions: [],
         notes: "",
         showBeforeColumn: false,
+        showMultipleMeasurements: false,
         createdAt: now,
         updatedAt: now,
       },
@@ -62,6 +64,16 @@ export function loadData(): StoredData {
   }
 }
 
+// Old format for migration
+interface LegacyReading {
+  id: string;
+  expectedTime: string;
+  beforeMs?: number | null;
+  measuredMs?: number | null;
+  beforeSamples?: number[];
+  measurementSamples?: number[];
+}
+
 function migrateData(data: StoredData): StoredData {
   // Add missing fields to cameras for backwards compatibility
   for (const cameraId of Object.keys(data.cameras)) {
@@ -75,10 +87,30 @@ function migrateData(data: StoredData): StoredData {
     if (camera.showBeforeColumn === undefined) {
       camera.showBeforeColumn = false;
     }
+    if (camera.showMultipleMeasurements === undefined) {
+      camera.showMultipleMeasurements = false;
+    }
     // Add createdTimestamp if missing (use createdAt as fallback)
     if (!camera.metadata.createdTimestamp) {
       camera.metadata.createdTimestamp = camera.createdAt;
     }
+    // Migrate readings from old format (beforeMs/measuredMs) to new format (arrays)
+    camera.readings = camera.readings.map((reading) => {
+      const legacyReading = reading as unknown as LegacyReading;
+      // Check if already migrated (has array fields)
+      if (Array.isArray(legacyReading.beforeSamples) && Array.isArray(legacyReading.measurementSamples)) {
+        return reading;
+      }
+      // Migrate from old format
+      const beforeSamples: number[] = legacyReading.beforeMs != null ? [legacyReading.beforeMs] : [];
+      const measurementSamples: number[] = legacyReading.measuredMs != null ? [legacyReading.measuredMs] : [];
+      return {
+        id: legacyReading.id,
+        expectedTime: legacyReading.expectedTime,
+        beforeSamples,
+        measurementSamples,
+      };
+    });
   }
   return data;
 }
@@ -97,7 +129,7 @@ export function getCurrentCamera(data: StoredData): StoredCamera {
 
 export function updateCurrentCamera(
   data: StoredData,
-  updates: Partial<Pick<StoredCamera, "metadata" | "readings" | "actions" | "notes" | "showBeforeColumn">>
+  updates: Partial<Pick<StoredCamera, "metadata" | "readings" | "actions" | "notes" | "showBeforeColumn" | "showMultipleMeasurements">>
 ): StoredData {
   const camera = data.cameras[data.currentCameraId];
   return {
@@ -128,6 +160,7 @@ export function addCamera(data: StoredData): StoredData {
         actions: [],
         notes: "",
         showBeforeColumn: false,
+        showMultipleMeasurements: false,
         createdAt: now,
         updatedAt: now,
       },
@@ -153,6 +186,7 @@ export function deleteCamera(data: StoredData, cameraId: string): StoredData {
           actions: [],
           notes: "",
           showBeforeColumn: false,
+          showMultipleMeasurements: false,
           createdAt: now,
           updatedAt: now,
         },
@@ -195,13 +229,36 @@ export function importCamera(
   data: StoredData,
   importedData: {
     metadata: CameraMetadata;
-    readings: ShutterReading[];
+    readings: LegacyReading[];
     actions: string[];
     notes: string;
   }
 ): StoredData {
   const newId = generateCameraId();
   const now = new Date().toISOString();
+
+  // Migrate readings from old format if needed
+  const migratedReadings: ShutterReading[] = importedData.readings.map((reading) => {
+    // Check if already in new format
+    if (Array.isArray(reading.beforeSamples) && Array.isArray(reading.measurementSamples)) {
+      return {
+        id: reading.id,
+        expectedTime: reading.expectedTime,
+        beforeSamples: reading.beforeSamples,
+        measurementSamples: reading.measurementSamples,
+      };
+    }
+    // Migrate from old format
+    const beforeSamples: number[] = reading.beforeMs != null ? [reading.beforeMs] : [];
+    const measurementSamples: number[] = reading.measuredMs != null ? [reading.measuredMs] : [];
+    return {
+      id: reading.id,
+      expectedTime: reading.expectedTime,
+      beforeSamples,
+      measurementSamples,
+    };
+  });
+
   return {
     ...data,
     currentCameraId: newId,
@@ -210,10 +267,11 @@ export function importCamera(
       [newId]: {
         id: newId,
         metadata: importedData.metadata,
-        readings: importedData.readings,
+        readings: migratedReadings,
         actions: importedData.actions,
         notes: importedData.notes,
         showBeforeColumn: false,
+        showMultipleMeasurements: false,
         createdAt: now,
         updatedAt: now,
       },

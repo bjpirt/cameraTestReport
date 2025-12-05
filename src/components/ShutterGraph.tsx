@@ -12,10 +12,12 @@ import {
 } from "recharts";
 import { ShutterReading } from "../types/ShutterReading";
 import { fractionToMs, calculateEvDifference } from "../utils/shutter";
+import { calculateAverage, calculateStdDev } from "../utils/statistics";
 
 interface ShutterGraphProps {
   readings: ShutterReading[];
   showBeforeColumn: boolean;
+  showMultipleMeasurements: boolean;
 }
 
 export interface ShutterGraphRef {
@@ -27,6 +29,9 @@ interface ChartDataPoint {
   beforeEvDiff: number | null;
   afterEvDiff: number | null;
   toleranceRange: [number, number];
+  // Variance band for multiple measurements
+  afterEvVarianceRange: [number, number] | null;
+  beforeEvVarianceRange: [number, number] | null;
 }
 
 function getToleranceForSpeed(expectedTime: string): number {
@@ -36,30 +41,62 @@ function getToleranceForSpeed(expectedTime: string): number {
   return ms >= 8 ? 0.25 : 0.333;
 }
 
+// Calculate variance range in EV for visualization
+function calculateEvVarianceRange(
+  expectedMs: number,
+  samples: number[]
+): [number, number] | null {
+  const avg = calculateAverage(samples);
+  const stdDev = calculateStdDev(samples);
+  if (avg === null || stdDev === null) return null;
+
+  // Calculate ±1σ range in EV
+  // Use avg ± stdDev in ms, then convert to EV
+  const lowMs = Math.max(0.001, avg - stdDev);
+  const highMs = avg + stdDev;
+  const lowEv = calculateEvDifference(expectedMs, lowMs);
+  const highEv = calculateEvDifference(expectedMs, highMs);
+
+  return [Math.min(lowEv, highEv), Math.max(lowEv, highEv)];
+}
+
 function prepareChartData(readings: ShutterReading[]): ChartDataPoint[] {
   return readings.map((reading) => {
     const expectedMs = fractionToMs(reading.expectedTime);
     const tolerance = getToleranceForSpeed(reading.expectedTime);
+
+    // Use average for EV calculations
+    const beforeAvg = calculateAverage(reading.beforeSamples);
+    const afterAvg = calculateAverage(reading.measurementSamples);
+
     const beforeEvDiff =
-      reading.beforeMs !== null
-        ? calculateEvDifference(expectedMs, reading.beforeMs)
-        : null;
+      beforeAvg !== null ? calculateEvDifference(expectedMs, beforeAvg) : null;
     const afterEvDiff =
-      reading.measuredMs !== null
-        ? calculateEvDifference(expectedMs, reading.measuredMs)
-        : null;
+      afterAvg !== null ? calculateEvDifference(expectedMs, afterAvg) : null;
+
+    // Calculate variance ranges for multiple measurements
+    const afterEvVarianceRange = calculateEvVarianceRange(
+      expectedMs,
+      reading.measurementSamples
+    );
+    const beforeEvVarianceRange = calculateEvVarianceRange(
+      expectedMs,
+      reading.beforeSamples
+    );
 
     return {
       expectedTime: reading.expectedTime,
       beforeEvDiff,
       afterEvDiff,
       toleranceRange: [-tolerance, tolerance] as [number, number],
+      afterEvVarianceRange,
+      beforeEvVarianceRange,
     };
   });
 }
 
 export const ShutterGraph = forwardRef<ShutterGraphRef, ShutterGraphProps>(
-  function ShutterGraph({ readings, showBeforeColumn }, ref) {
+  function ShutterGraph({ readings, showBeforeColumn, showMultipleMeasurements }, ref) {
     // Reverse so slower speeds (1s) are on the left, faster (1/1000) on the right
     const chartData = prepareChartData(readings).reverse();
 
@@ -130,6 +167,28 @@ export const ShutterGraph = forwardRef<ShutterGraphRef, ShutterGraphProps>(
                 fillOpacity={0.2}
                 isAnimationActive={false}
               />
+              {/* Variance band for After/Actual measurements - only when multiple measurements enabled */}
+              {showMultipleMeasurements && (
+                <Area
+                  type="monotone"
+                  dataKey="afterEvVarianceRange"
+                  stroke="none"
+                  fill="#2563eb"
+                  fillOpacity={0.2}
+                  isAnimationActive={false}
+                />
+              )}
+              {/* Variance band for Before measurements - only when both showBeforeColumn and showMultipleMeasurements are true */}
+              {showBeforeColumn && showMultipleMeasurements && (
+                <Area
+                  type="monotone"
+                  dataKey="beforeEvVarianceRange"
+                  stroke="none"
+                  fill="#9ca3af"
+                  fillOpacity={0.2}
+                  isAnimationActive={false}
+                />
+              )}
               {/* Before EV difference line (grey) - only shown when showBeforeColumn is true */}
               {showBeforeColumn && (
                 <Line

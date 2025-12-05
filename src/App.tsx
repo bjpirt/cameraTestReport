@@ -26,11 +26,13 @@ export function App() {
     actions,
     notes,
     showBeforeColumn,
+    showMultipleMeasurements,
     setMetadata,
     setReadings,
     setActions,
     setNotes,
     setShowBeforeColumn,
+    setShowMultipleMeasurements,
     cameras,
     currentCameraId,
     onAddCamera,
@@ -59,9 +61,10 @@ export function App() {
       actions,
       notes,
       showBeforeColumn,
+      showMultipleMeasurements,
       graphImageDataUrl,
     });
-  }, [metadata, readings, actions, notes, showBeforeColumn]);
+  }, [metadata, readings, actions, notes, showBeforeColumn, showMultipleMeasurements]);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -159,6 +162,8 @@ export function App() {
             onChange={setReadings}
             showBeforeColumn={showBeforeColumn}
             onShowBeforeColumnChange={setShowBeforeColumn}
+            showMultipleMeasurements={showMultipleMeasurements}
+            onShowMultipleMeasurementsChange={setShowMultipleMeasurements}
           />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <ActionsPerformed actions={actions} onChange={setActions} />

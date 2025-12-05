@@ -10,6 +10,8 @@ describe("ShutterTestSection", () => {
         onChange={() => {}}
         showBeforeColumn={false}
         onShowBeforeColumnChange={() => {}}
+        showMultipleMeasurements={false}
+        onShowMultipleMeasurementsChange={() => {}}
       />
     );
 
@@ -24,6 +26,8 @@ describe("ShutterTestSection", () => {
         onChange={() => {}}
         showBeforeColumn={false}
         onShowBeforeColumnChange={() => {}}
+        showMultipleMeasurements={false}
+        onShowMultipleMeasurementsChange={() => {}}
       />
     );
 
@@ -39,11 +43,14 @@ describe("ShutterTestSection", () => {
         onChange={() => {}}
         showBeforeColumn={false}
         onShowBeforeColumnChange={() => {}}
+        showMultipleMeasurements={false}
+        onShowMultipleMeasurementsChange={() => {}}
       />
     );
 
     expect(screen.getByText("Before and After")).toBeInTheDocument();
-    expect(screen.getByRole("checkbox")).not.toBeChecked();
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes[0]).not.toBeChecked(); // Before and After checkbox
   });
 
   it("shows checkbox as checked when showBeforeColumn is true", () => {
@@ -53,9 +60,27 @@ describe("ShutterTestSection", () => {
         onChange={() => {}}
         showBeforeColumn={true}
         onShowBeforeColumnChange={() => {}}
+        showMultipleMeasurements={false}
+        onShowMultipleMeasurementsChange={() => {}}
       />
     );
 
-    expect(screen.getByRole("checkbox")).toBeChecked();
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes[0]).toBeChecked(); // Before and After checkbox
+  });
+
+  it("renders multiple measurements checkbox", () => {
+    render(
+      <ShutterTestSection
+        readings={createDefaultReadings()}
+        onChange={() => {}}
+        showBeforeColumn={false}
+        onShowBeforeColumnChange={() => {}}
+        showMultipleMeasurements={false}
+        onShowMultipleMeasurementsChange={() => {}}
+      />
+    );
+
+    expect(screen.getByText("Multiple Measurements")).toBeInTheDocument();
   });
 });
