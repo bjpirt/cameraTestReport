@@ -62,31 +62,46 @@ describe("Field Navigation", () => {
     cy.get("#field-customer").should("exist");
   });
 
-  it("first reading inputs have correct IDs", () => {
-    cy.get("#reading-before-0").should("exist");
-    cy.get("#reading-after-0").should("exist");
+  it("first reading input has correct ID in default mode", () => {
+    cy.get("#reading-actual-0").should("exist");
   });
 
-  it("pressing Enter in before field moves to next before field", () => {
-    cy.get("#reading-before-0").type("1.0{enter}");
-    cy.get("#reading-before-1").should("be.focused");
+  it("pressing Enter in actual field moves to next actual field", () => {
+    cy.get("#reading-actual-0").type("1.0{enter}");
+    cy.get("#reading-actual-1").should("be.focused");
   });
 
-  it("pressing Enter in last before field moves to first after field", () => {
-    // Navigate to the last before field (index 10 for 11 readings)
-    cy.get("#reading-before-10").type("1.0{enter}");
-    cy.get("#reading-after-0").should("be.focused");
-  });
+  describe("with Before and After mode enabled", () => {
+    beforeEach(() => {
+      cy.contains("Before and After").click();
+    });
 
-  it("pressing Enter in after field moves to next after field", () => {
-    cy.get("#reading-after-0").type("1.0{enter}");
-    cy.get("#reading-after-1").should("be.focused");
-  });
+    it("first reading inputs have correct IDs", () => {
+      cy.get("#reading-before-0").should("exist");
+      cy.get("#reading-after-0").should("exist");
+    });
 
-  it("pressing Enter navigates through before fields then after fields", () => {
-    cy.get("#reading-before-0").type("1.0{enter}");
-    cy.get("#reading-before-1").should("be.focused");
-    cy.get("#reading-before-1").type("2.0{enter}");
-    cy.get("#reading-before-2").should("be.focused");
+    it("pressing Enter in before field moves to next before field", () => {
+      cy.get("#reading-before-0").type("1.0{enter}");
+      cy.get("#reading-before-1").should("be.focused");
+    });
+
+    it("pressing Enter in last before field moves to first after field", () => {
+      // Navigate to the last before field (index 10 for 11 readings)
+      cy.get("#reading-before-10").type("1.0{enter}");
+      cy.get("#reading-after-0").should("be.focused");
+    });
+
+    it("pressing Enter in after field moves to next after field", () => {
+      cy.get("#reading-after-0").type("1.0{enter}");
+      cy.get("#reading-after-1").should("be.focused");
+    });
+
+    it("pressing Enter navigates through before fields then after fields", () => {
+      cy.get("#reading-before-0").type("1.0{enter}");
+      cy.get("#reading-before-1").should("be.focused");
+      cy.get("#reading-before-1").type("2.0{enter}");
+      cy.get("#reading-before-2").should("be.focused");
+    });
   });
 });

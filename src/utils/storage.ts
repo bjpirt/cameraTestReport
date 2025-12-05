@@ -10,6 +10,7 @@ export interface StoredCamera {
   readings: ShutterReading[];
   actions: string[];
   notes: string;
+  showBeforeColumn: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,6 +34,7 @@ export function createDefaultStoredData(): StoredData {
         readings: createDefaultReadings(),
         actions: [],
         notes: "",
+        showBeforeColumn: false,
         createdAt: now,
         updatedAt: now,
       },
@@ -70,6 +72,9 @@ function migrateData(data: StoredData): StoredData {
     if (camera.notes === undefined) {
       camera.notes = "";
     }
+    if (camera.showBeforeColumn === undefined) {
+      camera.showBeforeColumn = false;
+    }
     // Add createdTimestamp if missing (use createdAt as fallback)
     if (!camera.metadata.createdTimestamp) {
       camera.metadata.createdTimestamp = camera.createdAt;
@@ -92,7 +97,7 @@ export function getCurrentCamera(data: StoredData): StoredCamera {
 
 export function updateCurrentCamera(
   data: StoredData,
-  updates: Partial<Pick<StoredCamera, "metadata" | "readings" | "actions" | "notes">>
+  updates: Partial<Pick<StoredCamera, "metadata" | "readings" | "actions" | "notes" | "showBeforeColumn">>
 ): StoredData {
   const camera = data.cameras[data.currentCameraId];
   return {
@@ -122,6 +127,7 @@ export function addCamera(data: StoredData): StoredData {
         readings: createDefaultReadings(),
         actions: [],
         notes: "",
+        showBeforeColumn: false,
         createdAt: now,
         updatedAt: now,
       },
@@ -146,6 +152,7 @@ export function deleteCamera(data: StoredData, cameraId: string): StoredData {
           readings: createDefaultReadings(),
           actions: [],
           notes: "",
+          showBeforeColumn: false,
           createdAt: now,
           updatedAt: now,
         },
@@ -206,6 +213,7 @@ export function importCamera(
         readings: importedData.readings,
         actions: importedData.actions,
         notes: importedData.notes,
+        showBeforeColumn: false,
         createdAt: now,
         updatedAt: now,
       },

@@ -25,10 +25,12 @@ export function App() {
     readings,
     actions,
     notes,
+    showBeforeColumn,
     setMetadata,
     setReadings,
     setActions,
     setNotes,
+    setShowBeforeColumn,
     cameras,
     currentCameraId,
     onAddCamera,
@@ -56,9 +58,10 @@ export function App() {
       readings,
       actions,
       notes,
+      showBeforeColumn,
       graphImageDataUrl,
     });
-  }, [metadata, readings, actions, notes]);
+  }, [metadata, readings, actions, notes, showBeforeColumn]);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -150,7 +153,13 @@ export function App() {
             onChange={setMetadata}
             onNavigateToReadings={handleNavigateToReadings}
           />
-          <ShutterTestSection ref={graphRef} readings={readings} onChange={setReadings} />
+          <ShutterTestSection
+            ref={graphRef}
+            readings={readings}
+            onChange={setReadings}
+            showBeforeColumn={showBeforeColumn}
+            onShowBeforeColumnChange={setShowBeforeColumn}
+          />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <ActionsPerformed actions={actions} onChange={setActions} />
             <Notes notes={notes} onChange={setNotes} />

@@ -20,10 +20,12 @@ interface UsePersistedCameraResult {
   readings: ShutterReading[];
   actions: string[];
   notes: string;
+  showBeforeColumn: boolean;
   setMetadata: (metadata: CameraMetadata) => void;
   setReadings: (readings: ShutterReading[]) => void;
   setActions: (actions: string[]) => void;
   setNotes: (notes: string) => void;
+  setShowBeforeColumn: (showBeforeColumn: boolean) => void;
   isLoaded: boolean;
   // Multi-camera support
   cameras: StoredCamera[];
@@ -69,6 +71,10 @@ export function usePersistedCamera(): UsePersistedCameraResult {
     setData((prev) => updateCurrentCamera(prev, { notes }));
   }, []);
 
+  const setShowBeforeColumn = useCallback((showBeforeColumn: boolean) => {
+    setData((prev) => updateCurrentCamera(prev, { showBeforeColumn }));
+  }, []);
+
   const onAddCamera = useCallback(() => {
     setData((prev) => addCamera(prev));
   }, []);
@@ -99,10 +105,12 @@ export function usePersistedCamera(): UsePersistedCameraResult {
     readings: camera.readings,
     actions: camera.actions,
     notes: camera.notes,
+    showBeforeColumn: camera.showBeforeColumn,
     setMetadata,
     setReadings,
     setActions,
     setNotes,
+    setShowBeforeColumn,
     isLoaded: true,
     cameras: getAllCameras(data),
     currentCameraId: data.currentCameraId,

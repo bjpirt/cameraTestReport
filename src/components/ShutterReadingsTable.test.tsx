@@ -11,75 +11,117 @@ describe("ShutterReadingsTable", () => {
     { id: "3", expectedTime: "1/250", beforeMs: null, measuredMs: 4 },
   ];
 
-  it("renders table headers", () => {
-    render(
-      <ShutterReadingsTable readings={mockReadings} onChange={() => {}} />
-    );
+  describe("with showBeforeColumn=false (default mode)", () => {
+    it("renders table headers with Actual column", () => {
+      render(
+        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={false} />
+      );
 
-    expect(screen.getByText("Expected")).toBeInTheDocument();
-    expect(screen.getByText("Before (ms)")).toBeInTheDocument();
-    expect(screen.getByText("After (ms)")).toBeInTheDocument();
-    expect(screen.getByText("EV Diff")).toBeInTheDocument();
+      expect(screen.getByText("Expected")).toBeInTheDocument();
+      expect(screen.getByText("Actual (ms)")).toBeInTheDocument();
+      expect(screen.getByText("EV Diff")).toBeInTheDocument();
+      expect(screen.queryByText("Before (ms)")).not.toBeInTheDocument();
+      expect(screen.queryByText("After (ms)")).not.toBeInTheDocument();
+    });
+
+    it("displays expected times", () => {
+      render(
+        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={false} />
+      );
+
+      expect(screen.getByText("1/1000")).toBeInTheDocument();
+      expect(screen.getAllByText("1/500").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("1/250").length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("displays measured values when present", () => {
+      render(
+        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={false} />
+      );
+
+      expect(screen.getByDisplayValue("2.1")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("4")).toBeInTheDocument();
+    });
+
+    it("calls onChange when actual value is updated", async () => {
+      const user = userEvent.setup();
+      const handleChange = jest.fn();
+      const readings: ShutterReading[] = [
+        { id: "1", expectedTime: "1/1000", beforeMs: null, measuredMs: null },
+      ];
+
+      render(
+        <ShutterReadingsTable readings={readings} onChange={handleChange} showBeforeColumn={false} />
+      );
+
+      const input = screen.getByPlaceholderText("—");
+      await user.type(input, "5");
+
+      expect(handleChange).toHaveBeenCalledWith([
+        { id: "1", expectedTime: "1/1000", beforeMs: null, measuredMs: 5 },
+      ]);
+    });
   });
 
-  it("displays expected times", () => {
-    render(
-      <ShutterReadingsTable readings={mockReadings} onChange={() => {}} />
-    );
+  describe("with showBeforeColumn=true (before/after mode)", () => {
+    it("renders table headers with Before and After columns", () => {
+      render(
+        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={true} />
+      );
 
-    expect(screen.getByText("1/1000")).toBeInTheDocument();
-    // 1/500 and 1/250 appear twice - once as expected time, once as fraction for measured value
-    expect(screen.getAllByText("1/500").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("1/250").length).toBeGreaterThanOrEqual(1);
-  });
+      expect(screen.getByText("Expected")).toBeInTheDocument();
+      expect(screen.getByText("Before (ms)")).toBeInTheDocument();
+      expect(screen.getByText("After (ms)")).toBeInTheDocument();
+      expect(screen.getByText("EV Diff")).toBeInTheDocument();
+      expect(screen.queryByText("Actual (ms)")).not.toBeInTheDocument();
+    });
 
-  it("displays measured values when present", () => {
-    render(
-      <ShutterReadingsTable readings={mockReadings} onChange={() => {}} />
-    );
+    it("displays measured values when present", () => {
+      render(
+        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={true} />
+      );
 
-    expect(screen.getByDisplayValue("2.1")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("4")).toBeInTheDocument();
-  });
+      expect(screen.getByDisplayValue("2.1")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("4")).toBeInTheDocument();
+    });
 
-  it("displays EV difference", () => {
-    render(
-      <ShutterReadingsTable readings={mockReadings} onChange={() => {}} />
-    );
+    it("displays EV difference", () => {
+      render(
+        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={true} />
+      );
 
-    // 1/500 expected (2ms) vs 2.1ms actual = slight underexposure
-    // EV diff = log2(2/2.1) ≈ -0.07
-    const evCells = screen.getAllByText(/-?\d+\.\d+/);
-    expect(evCells.length).toBeGreaterThan(0);
-  });
+      const evCells = screen.getAllByText(/-?\d+\.\d+/);
+      expect(evCells.length).toBeGreaterThan(0);
+    });
 
-  it("calls onChange when after value is updated", async () => {
-    const user = userEvent.setup();
-    const handleChange = jest.fn();
-    const readings: ShutterReading[] = [
-      { id: "1", expectedTime: "1/1000", beforeMs: null, measuredMs: null },
-    ];
+    it("calls onChange when after value is updated", async () => {
+      const user = userEvent.setup();
+      const handleChange = jest.fn();
+      const readings: ShutterReading[] = [
+        { id: "1", expectedTime: "1/1000", beforeMs: null, measuredMs: null },
+      ];
 
-    render(
-      <ShutterReadingsTable readings={readings} onChange={handleChange} />
-    );
+      render(
+        <ShutterReadingsTable readings={readings} onChange={handleChange} showBeforeColumn={true} />
+      );
 
-    // Get the second input (after field - first is before)
-    const inputs = screen.getAllByPlaceholderText("—");
-    await user.type(inputs[1], "5");
+      // Get the second input (after field - first is before)
+      const inputs = screen.getAllByPlaceholderText("—");
+      await user.type(inputs[1], "5");
 
-    expect(handleChange).toHaveBeenCalledWith([
-      { id: "1", expectedTime: "1/1000", beforeMs: null, measuredMs: 5 },
-    ]);
-  });
+      expect(handleChange).toHaveBeenCalledWith([
+        { id: "1", expectedTime: "1/1000", beforeMs: null, measuredMs: 5 },
+      ]);
+    });
 
-  it("shows dash for unmeasured readings in EV column", () => {
-    render(
-      <ShutterReadingsTable readings={mockReadings} onChange={() => {}} />
-    );
+    it("shows dash for unmeasured readings in EV column", () => {
+      render(
+        <ShutterReadingsTable readings={mockReadings} onChange={() => {}} showBeforeColumn={true} />
+      );
 
-    // The first row has no after measurement, should show dash in EV diff
-    const dashes = screen.getAllByText("—");
-    expect(dashes.length).toBe(1); // just EV diff for first row
+      // The first row has no after measurement, should show dash in EV diff
+      const dashes = screen.getAllByText("—");
+      expect(dashes.length).toBe(1); // just EV diff for first row
+    });
   });
 });

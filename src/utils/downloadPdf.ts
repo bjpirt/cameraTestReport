@@ -13,19 +13,21 @@ interface PdfReportOptions {
   readings: ShutterReading[];
   actions: string[];
   notes: string;
+  showBeforeColumn: boolean;
   graphImageDataUrl?: string;
 }
 
 export async function downloadReportAsPdf(
   options: PdfReportOptions
 ): Promise<void> {
-  const { metadata, readings, actions, notes, graphImageDataUrl } = options;
+  const { metadata, readings, actions, notes, showBeforeColumn, graphImageDataUrl } = options;
 
   const docDefinition = createDocumentDefinition(
     metadata,
     readings,
     actions,
     notes,
+    showBeforeColumn,
     graphImageDataUrl
   );
 
@@ -38,6 +40,7 @@ function createDocumentDefinition(
   readings: ShutterReading[],
   actions: string[],
   notes: string,
+  showBeforeColumn: boolean,
   graphImageDataUrl?: string
 ): TDocumentDefinitions {
   const content: Content[] = [
@@ -59,7 +62,7 @@ function createDocumentDefinition(
   }
 
   // Shutter Speed Readings Section
-  content.push(createReadingsSection(readings));
+  content.push(createReadingsSection(readings, showBeforeColumn));
 
   // Actions Section
   if (actions.length > 0) {
@@ -171,16 +174,19 @@ function createMetadataSection(metadata: CameraMetadata): Content {
   };
 }
 
-function createReadingsSection(readings: ShutterReading[]): Content {
-  const beforeCount = readings.filter((r) => r.beforeMs !== null).length;
-  const afterCount = readings.filter((r) => r.measuredMs !== null).length;
-
-  const headerRow: TableCell[] = [
-    { text: "Expected", style: "tableHeader", alignment: "center" },
-    { text: "Before (ms)", style: "tableHeader", alignment: "center" },
-    { text: "After (ms)", style: "tableHeader", alignment: "center" },
-    { text: "EV Diff", style: "tableHeader", alignment: "center" },
-  ];
+function createReadingsSection(readings: ShutterReading[], showBeforeColumn: boolean): Content {
+  const headerRow: TableCell[] = showBeforeColumn
+    ? [
+        { text: "Expected", style: "tableHeader", alignment: "center" },
+        { text: "Before (ms)", style: "tableHeader", alignment: "center" },
+        { text: "After (ms)", style: "tableHeader", alignment: "center" },
+        { text: "EV Diff", style: "tableHeader", alignment: "center" },
+      ]
+    : [
+        { text: "Expected", style: "tableHeader", alignment: "center" },
+        { text: "Actual (ms)", style: "tableHeader", alignment: "center" },
+        { text: "EV Diff", style: "tableHeader", alignment: "center" },
+      ];
 
   const dataRows: TableCell[][] = readings.map((reading) => {
     const expectedMs = fractionToMs(reading.expectedTime);
@@ -203,40 +209,51 @@ function createReadingsSection(readings: ShutterReading[]): Content {
       }
     }
 
-    return [
-      { text: reading.expectedTime, style: "tableCell", alignment: "center" },
-      {
-        text: reading.beforeMs?.toFixed(2) ?? "—",
-        style: "tableCell",
-        alignment: "center",
-      },
-      {
-        text: reading.measuredMs?.toFixed(2) ?? "—",
-        style: "tableCell",
-        alignment: "center",
-      },
-      {
-        text: evDiff,
-        style: "tableCell",
-        alignment: "center",
-        color: evColor,
-      },
-    ];
+    if (showBeforeColumn) {
+      return [
+        { text: reading.expectedTime, style: "tableCell", alignment: "center" },
+        {
+          text: reading.beforeMs?.toFixed(2) ?? "—",
+          style: "tableCell",
+          alignment: "center",
+        },
+        {
+          text: reading.measuredMs?.toFixed(2) ?? "—",
+          style: "tableCell",
+          alignment: "center",
+        },
+        {
+          text: evDiff,
+          style: "tableCell",
+          alignment: "center",
+          color: evColor,
+        },
+      ];
+    } else {
+      return [
+        { text: reading.expectedTime, style: "tableCell", alignment: "center" },
+        {
+          text: reading.measuredMs?.toFixed(2) ?? "—",
+          style: "tableCell",
+          alignment: "center",
+        },
+        {
+          text: evDiff,
+          style: "tableCell",
+          alignment: "center",
+          color: evColor,
+        },
+      ];
+    }
   });
 
   return {
     stack: [
       { text: "Shutter Speed Readings", style: "sectionHeader" },
       {
-        text: `Before: ${beforeCount} | After: ${afterCount} of ${readings.length} readings`,
-        fontSize: 10,
-        color: "#6b7280",
-        margin: [0, 0, 0, 8],
-      },
-      {
         table: {
           headerRows: 1,
-          widths: ["*", "*", "*", "*"],
+          widths: showBeforeColumn ? ["*", "*", "*", "*"] : ["*", "*", "*"],
           body: [headerRow, ...dataRows],
         },
         layout: {

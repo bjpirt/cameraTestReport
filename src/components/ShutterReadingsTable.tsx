@@ -5,11 +5,13 @@ import { fractionToMs, calculateEvDifference, msToFraction } from "../utils/shut
 interface ShutterReadingsTableProps {
   readings: ShutterReading[];
   onChange: (readings: ShutterReading[]) => void;
+  showBeforeColumn: boolean;
 }
 
 export function ShutterReadingsTable({
   readings,
   onChange,
+  showBeforeColumn,
 }: ShutterReadingsTableProps) {
   const [newSpeed, setNewSpeed] = useState("");
 
@@ -80,12 +82,18 @@ export function ShutterReadingsTable({
   const handleReadingKeyDown = (
     e: React.KeyboardEvent,
     index: number,
-    field: "before" | "after"
+    field: "before" | "after" | "actual"
   ) => {
     if (e.key === "Enter" || (e.key === "Tab" && !e.shiftKey)) {
       e.preventDefault();
       const nextIndex = index + 1;
-      if (field === "before") {
+      if (field === "actual") {
+        // Single column mode - just move to next actual field
+        if (nextIndex < readings.length) {
+          const nextInput = document.getElementById(`reading-actual-${nextIndex}`);
+          nextInput?.focus();
+        }
+      } else if (field === "before") {
         // Move to next before field, or first after field when done
         if (nextIndex < readings.length) {
           const nextInput = document.getElementById(`reading-before-${nextIndex}`);
@@ -122,8 +130,14 @@ export function ShutterReadingsTable({
       <thead>
         <tr className="border-b border-gray-200">
           <th className="text-left py-2 font-medium text-gray-600">Expected</th>
-          <th className="text-left py-2 font-medium text-gray-600">Before (ms)</th>
-          <th className="text-left py-2 font-medium text-gray-600">After (ms)</th>
+          {showBeforeColumn ? (
+            <>
+              <th className="text-left py-2 font-medium text-gray-600">Before (ms)</th>
+              <th className="text-left py-2 font-medium text-gray-600">After (ms)</th>
+            </>
+          ) : (
+            <th className="text-left py-2 font-medium text-gray-600">Actual (ms)</th>
+          )}
           <th className="text-left py-2 font-medium text-gray-600">EV Diff</th>
         </tr>
       </thead>
@@ -138,42 +152,65 @@ export function ShutterReadingsTable({
           return (
             <tr key={reading.id} className="border-b border-gray-100">
               <td className="py-1.5 font-mono">{reading.expectedTime}</td>
-              <td className="py-1.5">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    step="0.1"
-                    id={`reading-before-${index}`}
-                    value={reading.beforeMs ?? ""}
-                    onChange={(e) => handleBeforeChange(reading.id, e.target.value)}
-                    onKeyDown={(e) => handleReadingKeyDown(e, index, "before")}
-                    className="w-20 px-2 py-0.5 border border-gray-300 rounded text-right font-mono
-                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="—"
-                  />
-                  <span className="text-gray-500 font-mono text-xs w-14">
-                    {reading.beforeMs !== null ? msToFraction(reading.beforeMs) : ""}
-                  </span>
-                </div>
-              </td>
-              <td className="py-1.5">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    step="0.1"
-                    id={`reading-after-${index}`}
-                    value={reading.measuredMs ?? ""}
-                    onChange={(e) => handleAfterChange(reading.id, e.target.value)}
-                    onKeyDown={(e) => handleReadingKeyDown(e, index, "after")}
-                    className="w-20 px-2 py-0.5 border border-gray-300 rounded text-right font-mono
-                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="—"
-                  />
-                  <span className="text-gray-500 font-mono text-xs w-14">
-                    {reading.measuredMs !== null ? msToFraction(reading.measuredMs) : ""}
-                  </span>
-                </div>
-              </td>
+              {showBeforeColumn ? (
+                <>
+                  <td className="py-1.5">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        step="0.1"
+                        id={`reading-before-${index}`}
+                        value={reading.beforeMs ?? ""}
+                        onChange={(e) => handleBeforeChange(reading.id, e.target.value)}
+                        onKeyDown={(e) => handleReadingKeyDown(e, index, "before")}
+                        className="w-20 px-2 py-0.5 border border-gray-300 rounded text-right font-mono
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="—"
+                      />
+                      <span className="text-gray-500 font-mono text-xs w-14">
+                        {reading.beforeMs !== null ? msToFraction(reading.beforeMs) : ""}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-1.5">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        step="0.1"
+                        id={`reading-after-${index}`}
+                        value={reading.measuredMs ?? ""}
+                        onChange={(e) => handleAfterChange(reading.id, e.target.value)}
+                        onKeyDown={(e) => handleReadingKeyDown(e, index, "after")}
+                        className="w-20 px-2 py-0.5 border border-gray-300 rounded text-right font-mono
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="—"
+                      />
+                      <span className="text-gray-500 font-mono text-xs w-14">
+                        {reading.measuredMs !== null ? msToFraction(reading.measuredMs) : ""}
+                      </span>
+                    </div>
+                  </td>
+                </>
+              ) : (
+                <td className="py-1.5">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      step="0.1"
+                      id={`reading-actual-${index}`}
+                      value={reading.measuredMs ?? ""}
+                      onChange={(e) => handleAfterChange(reading.id, e.target.value)}
+                      onKeyDown={(e) => handleReadingKeyDown(e, index, "actual")}
+                      className="w-20 px-2 py-0.5 border border-gray-300 rounded text-right font-mono
+                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="—"
+                    />
+                    <span className="text-gray-500 font-mono text-xs w-14">
+                      {reading.measuredMs !== null ? msToFraction(reading.measuredMs) : ""}
+                    </span>
+                  </div>
+                </td>
+              )}
               <td className={`py-1.5 font-mono ${evDiff !== null ? getEvColor(evDiff) : ""}`}>
                 {evDiff !== null ? formatEvDiff(evDiff) : "—"}
               </td>
@@ -183,7 +220,7 @@ export function ShutterReadingsTable({
       </tbody>
       <tfoot>
         <tr>
-          <td colSpan={4} className="pt-3">
+          <td colSpan={showBeforeColumn ? 4 : 3} className="pt-3">
             <div className="flex items-center gap-2">
               <input
                 type="text"

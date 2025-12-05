@@ -230,8 +230,8 @@ describe("Reports Sidebar", () => {
     cy.contains("CLA performed").should("exist");
     cy.contains("Shutter replaced").should("exist");
 
-    // Verify measurement was imported
-    cy.get('input[type="number"]').first().should("have.value", "1.05");
+    // Verify measurement was imported (in default mode, shows measuredMs in Actual column)
+    cy.get('input[type="number"]').first().should("have.value", "1.02");
 
     // Verify we now have 2 reports
     cy.get('[aria-label="Open reports menu"]').click();

@@ -42,14 +42,14 @@ describe("Persistence", () => {
 
     // Verify it was added
     cy.contains("1/2000").should("exist");
-    cy.contains("Before: 0 | After: 0 of 12");
+    cy.get("tbody tr").should("have.length", 12);
 
     // Reload the page
     cy.reload();
 
     // Verify the custom speed persisted
     cy.contains("1/2000").should("exist");
-    cy.contains("Before: 0 | After: 0 of 12");
+    cy.get("tbody tr").should("have.length", 12);
   });
 
   it("persists multiple changes together", () => {
@@ -82,5 +82,27 @@ describe("Persistence", () => {
 
     // Verify the action persisted
     cy.contains("Cleaned shutter").should("exist");
+  });
+
+  it("persists before and after column setting after page reload", () => {
+    // Default should show Actual column
+    cy.contains("Actual (ms)").should("exist");
+    cy.contains("Before (ms)").should("not.exist");
+
+    // Enable Before and After mode
+    cy.contains("Before and After").click();
+
+    // Verify it shows Before and After columns
+    cy.contains("Before (ms)").should("exist");
+    cy.contains("After (ms)").should("exist");
+    cy.contains("Actual (ms)").should("not.exist");
+
+    // Reload
+    cy.reload();
+
+    // Verify the setting persisted
+    cy.contains("Before (ms)").should("exist");
+    cy.contains("After (ms)").should("exist");
+    cy.contains("Actual (ms)").should("not.exist");
   });
 });

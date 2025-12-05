@@ -8,6 +8,8 @@ describe("ShutterTestSection", () => {
       <ShutterTestSection
         readings={createDefaultReadings()}
         onChange={() => {}}
+        showBeforeColumn={false}
+        onShowBeforeColumnChange={() => {}}
       />
     );
 
@@ -20,11 +22,40 @@ describe("ShutterTestSection", () => {
       <ShutterTestSection
         readings={createDefaultReadings()}
         onChange={() => {}}
+        showBeforeColumn={false}
+        onShowBeforeColumnChange={() => {}}
       />
     );
 
     expect(screen.getByText("1/1000")).toBeInTheDocument();
     expect(screen.getByText("1/500")).toBeInTheDocument();
     expect(screen.getByText("1/60")).toBeInTheDocument();
+  });
+
+  it("renders before and after checkbox", () => {
+    render(
+      <ShutterTestSection
+        readings={createDefaultReadings()}
+        onChange={() => {}}
+        showBeforeColumn={false}
+        onShowBeforeColumnChange={() => {}}
+      />
+    );
+
+    expect(screen.getByText("Before and After")).toBeInTheDocument();
+    expect(screen.getByRole("checkbox")).not.toBeChecked();
+  });
+
+  it("shows checkbox as checked when showBeforeColumn is true", () => {
+    render(
+      <ShutterTestSection
+        readings={createDefaultReadings()}
+        onChange={() => {}}
+        showBeforeColumn={true}
+        onShowBeforeColumnChange={() => {}}
+      />
+    );
+
+    expect(screen.getByRole("checkbox")).toBeChecked();
   });
 });

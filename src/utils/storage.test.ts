@@ -98,6 +98,7 @@ describe("storage", () => {
             readings: [{ id: "r1", expectedTime: "1/1000", beforeMs: null, measuredMs: 1.1 }],
             actions: ["Cleaned shutter"],
             notes: "Test notes",
+            showBeforeColumn: false,
             createdAt: "2024-01-01T00:00:00.000Z",
             updatedAt: "2024-01-15T00:00:00.000Z",
           },
@@ -255,6 +256,7 @@ describe("storage", () => {
         readings: [],
         actions: [],
         notes: "",
+        showBeforeColumn: false,
         createdAt: "2024-02-01T00:00:00.000Z",
         updatedAt: "2024-02-01T00:00:00.000Z",
       };
@@ -285,6 +287,7 @@ describe("storage", () => {
         readings: [],
         actions: [],
         notes: "",
+        showBeforeColumn: false,
         createdAt: "2024-02-01T00:00:00.000Z",
         updatedAt: "2024-02-01T00:00:00.000Z",
       };
@@ -325,6 +328,7 @@ describe("storage", () => {
         readings: [],
         actions: [],
         notes: "",
+        showBeforeColumn: false,
         createdAt: "2024-02-01T00:00:00.000Z",
         updatedAt: "2024-02-01T00:00:00.000Z",
       };

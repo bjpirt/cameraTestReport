@@ -15,6 +15,7 @@ import { fractionToMs, calculateEvDifference } from "../utils/shutter";
 
 interface ShutterGraphProps {
   readings: ShutterReading[];
+  showBeforeColumn: boolean;
 }
 
 export interface ShutterGraphRef {
@@ -58,9 +59,7 @@ function prepareChartData(readings: ShutterReading[]): ChartDataPoint[] {
 }
 
 export const ShutterGraph = forwardRef<ShutterGraphRef, ShutterGraphProps>(
-  function ShutterGraph({ readings }, ref) {
-    const beforeCount = readings.filter((r) => r.beforeMs !== null).length;
-    const afterCount = readings.filter((r) => r.measuredMs !== null).length;
+  function ShutterGraph({ readings, showBeforeColumn }, ref) {
     // Reverse so slower speeds (1s) are on the left, faster (1/1000) on the right
     const chartData = prepareChartData(readings).reverse();
 
@@ -112,7 +111,9 @@ export const ShutterGraph = forwardRef<ShutterGraphRef, ShutterGraphProps>(
               <Tooltip
                 formatter={(value, name) => {
                   if (typeof value === "number") {
-                    const label = name === "beforeEvDiff" ? "Before" : "After";
+                    const label = showBeforeColumn
+                      ? name === "beforeEvDiff" ? "Before" : "After"
+                      : "Actual";
                     return [`${value > 0 ? "+" : ""}${value.toFixed(2)} EV`, label];
                   }
                   return "—";
@@ -129,18 +130,20 @@ export const ShutterGraph = forwardRef<ShutterGraphRef, ShutterGraphProps>(
                 fillOpacity={0.2}
                 isAnimationActive={false}
               />
-              {/* Before EV difference line (grey) */}
-              <Line
-                type="monotone"
-                dataKey="beforeEvDiff"
-                stroke="#9ca3af"
-                strokeWidth={2}
-                dot={{ fill: "#9ca3af", strokeWidth: 0, r: 4 }}
-                activeDot={{ r: 6, fill: "#6b7280" }}
-                connectNulls={false}
-                isAnimationActive={false}
-              />
-              {/* After EV difference line (blue) */}
+              {/* Before EV difference line (grey) - only shown when showBeforeColumn is true */}
+              {showBeforeColumn && (
+                <Line
+                  type="monotone"
+                  dataKey="beforeEvDiff"
+                  stroke="#9ca3af"
+                  strokeWidth={2}
+                  dot={{ fill: "#9ca3af", strokeWidth: 0, r: 4 }}
+                  activeDot={{ r: 6, fill: "#6b7280" }}
+                  connectNulls={false}
+                  isAnimationActive={false}
+                />
+              )}
+              {/* After/Actual EV difference line (blue) */}
               <Line
                 type="monotone"
                 dataKey="afterEvDiff"
@@ -154,9 +157,6 @@ export const ShutterGraph = forwardRef<ShutterGraphRef, ShutterGraphProps>(
             </ComposedChart>
           </ResponsiveContainer>
         </div>
-        <p className="text-sm text-gray-500 text-center mt-2">
-          Before: {beforeCount} | After: {afterCount} of {readings.length}
-        </p>
       </div>
     );
   }
