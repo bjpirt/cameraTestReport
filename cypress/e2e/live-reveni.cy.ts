@@ -77,19 +77,20 @@ describe("Live Reveni Shutter Tester Mode", () => {
     cy.get('[aria-label="Open reports menu"]').click();
     cy.get('[aria-label="More options"]').click();
     cy.contains("Live Reveni Shutter Tester").click();
-    cy.contains("1/1000").click();
+    // Table is ordered slow to fast, so 1/500 comes before 1/1000
+    cy.contains("1/500").click();
 
     // Enter data
     cy.get('input[placeholder="Waiting for Reveni data..."]')
       .type("868.63\t868.36\t865.06{enter}");
 
-    // Press Enter with empty input to advance
+    // Press Enter with empty input to advance to next speed (1/1000)
     cy.get('input[placeholder="Waiting for Reveni data..."]').type("{enter}");
-    cy.contains("Selected speed:").parent().should("contain", "1/500");
+    cy.contains("Selected speed:").parent().should("contain", "1/1000");
 
-    // 1/500 should be expanded, 1/1000 collapsed
-    cy.get("tbody tr").filter(":contains('1/500')").first().should("contain", "▼");
-    cy.get("tbody tr").filter(":contains('1/1000')").first().should("contain", "▶");
+    // 1/1000 should be expanded, 1/500 collapsed
+    cy.get("tbody tr").filter(":contains('1/1000')").first().should("contain", "▼");
+    cy.get("tbody tr").filter(":contains('1/500')").first().should("contain", "▶");
 
     // Input should still be focused
     cy.get('input[placeholder="Waiting for Reveni data..."]').should("be.focused");

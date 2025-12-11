@@ -123,8 +123,9 @@ export function ShutterReadingsTable({
     };
 
     const newReadings = [...readings];
+    // Table is ordered slow to fast (large ms first), so insert before first speed faster than new one
     const insertIndex = newReadings.findIndex(
-      (r) => fractionToMs(r.expectedTime) > newMs
+      (r) => fractionToMs(r.expectedTime) < newMs
     );
 
     if (insertIndex === -1) {

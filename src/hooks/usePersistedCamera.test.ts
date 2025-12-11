@@ -52,7 +52,7 @@ describe("usePersistedCamera", () => {
     });
 
     expect(result.current.readings.length).toBe(11);
-    expect(result.current.readings[0].expectedTime).toBe("1/1000");
+    expect(result.current.readings[0].expectedTime).toBe("1"); // Slowest speed first
   });
 
   it("persists metadata changes to localStorage", async () => {

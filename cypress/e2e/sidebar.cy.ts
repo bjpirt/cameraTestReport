@@ -187,7 +187,7 @@ describe("Reports Sidebar", () => {
   });
 
   it("imports a JSON report file", () => {
-    // Create a test JSON file content
+    // Create a test JSON file content (readings ordered slow to fast)
     const reportData = {
       metadata: {
         make: "Leica",
@@ -198,8 +198,8 @@ describe("Reports Sidebar", () => {
         createdTimestamp: "2024-06-15T10:00:00.000Z",
       },
       readings: [
-        { id: "r1", expectedTime: "1/1000", beforeMs: 1.05, measuredMs: 1.02 },
-        { id: "r2", expectedTime: "1/500", beforeMs: null, measuredMs: 2.1 },
+        { id: "r1", expectedTime: "1/500", beforeMs: null, measuredMs: 2.1 },
+        { id: "r2", expectedTime: "1/1000", beforeMs: 1.05, measuredMs: 1.02 },
       ],
       actions: ["CLA performed", "Shutter replaced"],
       notes: "Imported test report",
@@ -231,8 +231,8 @@ describe("Reports Sidebar", () => {
     cy.contains("CLA performed").should("exist");
     cy.contains("Shutter replaced").should("exist");
 
-    // Verify measurement was imported (in default mode, shows measuredMs in Actual column)
-    cy.get('input[type="number"]').first().should("have.value", "1.02");
+    // Verify measurement was imported (first row is 1/500 with 2.1ms)
+    cy.get('input[type="number"]').first().should("have.value", "2.1");
 
     // Verify we now have 2 reports
     cy.get('[aria-label="Open reports menu"]').click();

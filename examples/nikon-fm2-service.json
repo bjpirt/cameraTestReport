@@ -9,70 +9,10 @@
   },
   "readings": [
     {
-      "id": "r1",
-      "expectedTime": "1/4000",
-      "beforeSamples": [0.32, 0.48, 0.29, 0.52, 0.38],
-      "measurementSamples": [0.27, 0.23, 0.28, 0.25, 0.22]
-    },
-    {
-      "id": "r2",
-      "expectedTime": "1/2000",
-      "beforeSamples": [0.62, 0.88, 0.55, 0.95, 0.71],
-      "measurementSamples": [0.54, 0.47, 0.56, 0.50, 0.45]
-    },
-    {
-      "id": "r3",
-      "expectedTime": "1/1000",
-      "beforeSamples": [1.18, 1.62, 1.05, 1.75, 1.32],
-      "measurementSamples": [1.08, 0.95, 1.10, 1.00, 0.92]
-    },
-    {
-      "id": "r4",
-      "expectedTime": "1/500",
-      "beforeSamples": [2.25, 3.05, 2.08, 3.28, 2.55],
-      "measurementSamples": [2.12, 1.92, 2.18, 2.02, 1.88]
-    },
-    {
-      "id": "r5",
-      "expectedTime": "1/250",
-      "beforeSamples": [4.42, 5.85, 4.05, 6.12, 4.88],
-      "measurementSamples": [4.22, 3.88, 4.32, 4.05, 3.82]
-    },
-    {
-      "id": "r6",
-      "expectedTime": "1/125",
-      "beforeSamples": [8.65, 11.2, 7.92, 11.8, 9.45],
-      "measurementSamples": [8.35, 7.82, 8.52, 8.05, 7.72]
-    },
-    {
-      "id": "r7",
-      "expectedTime": "1/60",
-      "beforeSamples": [17.2, 21.5, 15.8, 22.8, 18.5],
-      "measurementSamples": [17.2, 16.2, 17.5, 16.8, 16.0]
-    },
-    {
-      "id": "r8",
-      "expectedTime": "1/30",
-      "beforeSamples": [33.5, 41.2, 31.2, 43.5, 36.0],
-      "measurementSamples": [34.2, 32.5, 34.8, 33.5, 32.0]
-    },
-    {
-      "id": "r9",
-      "expectedTime": "1/15",
-      "beforeSamples": [65.8, 79.5, 62.2, 82.5, 70.5],
-      "measurementSamples": [68.5, 65.2, 69.2, 67.0, 64.5]
-    },
-    {
-      "id": "r10",
-      "expectedTime": "1/8",
-      "beforeSamples": [128, 152, 122, 158, 138],
-      "measurementSamples": [128, 124, 130, 126, 123]
-    },
-    {
-      "id": "r11",
-      "expectedTime": "1/4",
-      "beforeSamples": [255, 298, 242, 308, 272],
-      "measurementSamples": [255, 248, 258, 252, 246]
+      "id": "r13",
+      "expectedTime": "1",
+      "beforeSamples": [1005, 1145, 965, 1175, 1062],
+      "measurementSamples": [1015, 992, 1025, 1005, 985]
     },
     {
       "id": "r12",
@@ -81,10 +21,70 @@
       "measurementSamples": [508, 495, 515, 502, 492]
     },
     {
-      "id": "r13",
-      "expectedTime": "1",
-      "beforeSamples": [1005, 1145, 965, 1175, 1062],
-      "measurementSamples": [1015, 992, 1025, 1005, 985]
+      "id": "r11",
+      "expectedTime": "1/4",
+      "beforeSamples": [255, 298, 242, 308, 272],
+      "measurementSamples": [255, 248, 258, 252, 246]
+    },
+    {
+      "id": "r10",
+      "expectedTime": "1/8",
+      "beforeSamples": [128, 152, 122, 158, 138],
+      "measurementSamples": [128, 124, 130, 126, 123]
+    },
+    {
+      "id": "r9",
+      "expectedTime": "1/15",
+      "beforeSamples": [65.8, 79.5, 62.2, 82.5, 70.5],
+      "measurementSamples": [68.5, 65.2, 69.2, 67.0, 64.5]
+    },
+    {
+      "id": "r8",
+      "expectedTime": "1/30",
+      "beforeSamples": [33.5, 41.2, 31.2, 43.5, 36.0],
+      "measurementSamples": [34.2, 32.5, 34.8, 33.5, 32.0]
+    },
+    {
+      "id": "r7",
+      "expectedTime": "1/60",
+      "beforeSamples": [17.2, 21.5, 15.8, 22.8, 18.5],
+      "measurementSamples": [17.2, 16.2, 17.5, 16.8, 16.0]
+    },
+    {
+      "id": "r6",
+      "expectedTime": "1/125",
+      "beforeSamples": [8.65, 11.2, 7.92, 11.8, 9.45],
+      "measurementSamples": [8.35, 7.82, 8.52, 8.05, 7.72]
+    },
+    {
+      "id": "r5",
+      "expectedTime": "1/250",
+      "beforeSamples": [4.42, 5.85, 4.05, 6.12, 4.88],
+      "measurementSamples": [4.22, 3.88, 4.32, 4.05, 3.82]
+    },
+    {
+      "id": "r4",
+      "expectedTime": "1/500",
+      "beforeSamples": [2.25, 3.05, 2.08, 3.28, 2.55],
+      "measurementSamples": [2.12, 1.92, 2.18, 2.02, 1.88]
+    },
+    {
+      "id": "r3",
+      "expectedTime": "1/1000",
+      "beforeSamples": [1.18, 1.62, 1.05, 1.75, 1.32],
+      "measurementSamples": [1.08, 0.95, 1.10, 1.00, 0.92]
+    },
+    {
+      "id": "r2",
+      "expectedTime": "1/2000",
+      "beforeSamples": [0.62, 0.88, 0.55, 0.95, 0.71],
+      "measurementSamples": [0.54, 0.47, 0.56, 0.50, 0.45]
+    },
+    {
+      "id": "r1",
+      "expectedTime": "1/4000",
+      "beforeSamples": [0.32, 0.48, 0.29, 0.52, 0.38],
+      "measurementSamples": [0.27, 0.23, 0.28, 0.25, 0.22]
     }
   ],
   "actions": [

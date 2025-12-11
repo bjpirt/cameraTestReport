@@ -62,7 +62,7 @@ describe("storage", () => {
       const data = createDefaultStoredData();
       const camera = data.cameras[data.currentCameraId];
       expect(camera.readings.length).toBe(11);
-      expect(camera.readings[0].expectedTime).toBe("1/1000");
+      expect(camera.readings[0].expectedTime).toBe("1"); // Slowest speed first
     });
 
     it("creates camera with timestamps", () => {
