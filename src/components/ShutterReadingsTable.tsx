@@ -210,9 +210,13 @@ export function ShutterReadingsTable({
   // Calculate column count for colspan
   const getColSpan = () => {
     if (showMultipleMeasurements) {
-      // Chevron + Expected + value cols + range cols + EV Diff
-      return showBeforeColumn ? 7 : 4;
+      // Chevron + Expected + value cols + range cols + EV Diff cols
+      // Before and After: chevron + expected + before + range + evDiff + after + range + evDiff = 8
+      // Single: chevron + expected + actual + range + evDiff = 5
+      return showBeforeColumn ? 8 : 5;
     }
+    // Before and After: expected + before + after + evDiff = 4
+    // Single: expected + actual + evDiff = 3
     return showBeforeColumn ? 4 : 3;
   };
 
@@ -229,7 +233,10 @@ export function ShutterReadingsTable({
               {/* Before columns grouped together */}
               <th className="text-left py-2 font-medium text-gray-600">Before (ms)</th>
               {showMultipleMeasurements && (
-                <th className="text-left py-2 font-medium text-gray-600">Range</th>
+                <>
+                  <th className="text-left py-2 font-medium text-gray-600">Range</th>
+                  <th className="text-left py-2 font-medium text-gray-600">EV Diff</th>
+                </>
               )}
               {/* After columns grouped together */}
               <th className="text-left py-2 font-medium text-gray-600">After (ms)</th>
@@ -251,7 +258,12 @@ export function ShutterReadingsTable({
       <tbody>
         {readings.map((reading, index) => {
           const expectedMs = fractionToMs(reading.expectedTime);
+          const beforeAvg = calculateAverage(reading.beforeSamples);
           const measurementAvg = calculateAverage(reading.measurementSamples);
+          const beforeEvDiff =
+            beforeAvg !== null
+              ? calculateEvDifference(expectedMs, beforeAvg)
+              : null;
           const evDiff =
             measurementAvg !== null
               ? calculateEvDifference(expectedMs, measurementAvg)
@@ -316,9 +328,14 @@ export function ShutterReadingsTable({
                       )}
                     </td>
                     {showMultipleMeasurements && (
-                      <td className="py-1.5 font-mono text-gray-600">
-                        {formatRange(reading.beforeSamples) ?? "—"}
-                      </td>
+                      <>
+                        <td className="py-1.5 font-mono text-gray-600">
+                          {formatRange(reading.beforeSamples) ?? "—"}
+                        </td>
+                        <td className={`py-1.5 font-mono ${beforeEvDiff !== null ? getEvColor(beforeEvDiff) : ""}`}>
+                          {beforeEvDiff !== null ? formatEvDiff(beforeEvDiff) : "—"}
+                        </td>
+                      </>
                     )}
                     {/* After columns grouped together */}
                     <td className="py-1.5" onClick={showMultipleMeasurements ? undefined : (e) => e.stopPropagation()}>
@@ -413,6 +430,7 @@ export function ShutterReadingsTable({
                               {reading.beforeSamples[sampleIndex]?.toFixed(1) ?? "—"}
                             </td>
                             <td className="py-1"></td>
+                            <td className="py-1"></td>
                             {/* After columns */}
                             <td className="py-1 font-mono text-gray-700">
                               {reading.measurementSamples[sampleIndex]?.toFixed(1) ?? "—"}
@@ -470,6 +488,7 @@ export function ShutterReadingsTable({
                             placeholder="—"
                           />
                         </td>
+                        <td className="py-1.5"></td>
                         <td className="py-1.5"></td>
                         {/* After columns */}
                         <td className="py-1.5">

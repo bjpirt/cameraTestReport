@@ -99,7 +99,7 @@ describe("Live Reveni Shutter Tester Mode", () => {
     cy.contains("Selected speed:").parent().should("contain", "1/250");
   });
 
-  it("handles Before and After mode with column selection", () => {
+  it("handles Before and After mode with column selection and EV Diff", () => {
     cy.get('[aria-label="Open reports menu"]').click();
     cy.get('[aria-label="More options"]').click();
     cy.contains("Live Reveni Shutter Tester").click();
@@ -110,25 +110,38 @@ describe("Live Reveni Shutter Tester Mode", () => {
     // Enable Before and After
     cy.contains("Before and After").click();
 
+    // Should show two EV Diff columns in header (one for Before, one for After)
+    cy.get("thead th").filter(":contains('EV Diff')").should("have.length", 2);
+
     // Dropdown should appear and default to "Before"
     cy.contains("Adding to:").should("be.visible");
     cy.get("select").should("have.value", "before");
 
-    // Select a speed and add data to Before
+    // Select a speed and add data to Before (1ms matches expected 1ms for 1/1000)
     cy.contains("1/1000").click();
     cy.get('input[placeholder="Waiting for Reveni data..."]')
-      .type("100.00\t200.00\t300.00{enter}");
+      .type("100.00\t1.00\t300.00{enter}");
+
+    // Before EV Diff should show +0.00
+    cy.get("tbody tr").filter(":contains('1/1000')").first().within(() => {
+      cy.contains("+0.00").should("be.visible");
+    });
 
     // Switch to After column and add data
     cy.get("select").select("measurement");
     cy.get('input[placeholder="Waiting for Reveni data..."]')
-      .type("100.00\t150.00\t300.00{enter}");
+      .type("100.00\t1.00\t300.00{enter}");
 
     // Both values should be visible in expanded view
     cy.get("tbody tr.bg-gray-50").first().within(() => {
-      cy.contains("200.0").should("be.visible");
-      cy.contains("150.0").should("be.visible");
+      cy.contains("1.0").should("be.visible");
     });
+
+    // Should show two EV diff values in the summary row (both +0.00)
+    cy.get("tbody tr").filter(":contains('1/1000')").first()
+      .find("td")
+      .filter(":contains('+0.00')")
+      .should("have.length", 2);
   });
 
   it("handles paste with Reveni format data", () => {
