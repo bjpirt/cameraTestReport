@@ -3,7 +3,6 @@ import { ShutterReading } from "../types/ShutterReading";
 import { fractionToMs, calculateEvDifference, msToFraction } from "../utils/shutter";
 import {
   calculateAverage,
-  calculateStdDev,
   formatRange,
   getFirstSample,
 } from "../utils/statistics";
@@ -200,17 +199,11 @@ export function ShutterReadingsTable({
     return `${avg.toFixed(1)} (${samples.length})`;
   };
 
-  const formatStdDev = (samples: number[]): string => {
-    const stdDev = calculateStdDev(samples);
-    if (stdDev === null) return "—";
-    return stdDev.toFixed(3);
-  };
-
   // Calculate column count for colspan
   const getColSpan = () => {
     if (showMultipleMeasurements) {
-      // Chevron + Expected + value cols + σ cols + range cols + EV Diff
-      return showBeforeColumn ? 9 : 5;
+      // Chevron + Expected + value cols + range cols + EV Diff
+      return showBeforeColumn ? 7 : 4;
     }
     return showBeforeColumn ? 4 : 3;
   };
@@ -228,28 +221,19 @@ export function ShutterReadingsTable({
               {/* Before columns grouped together */}
               <th className="text-left py-2 font-medium text-gray-600">Before (ms)</th>
               {showMultipleMeasurements && (
-                <>
-                  <th className="text-left py-2 font-medium text-gray-600">StdDev</th>
-                  <th className="text-left py-2 font-medium text-gray-600">Range</th>
-                </>
+                <th className="text-left py-2 font-medium text-gray-600">Range</th>
               )}
               {/* After columns grouped together */}
               <th className="text-left py-2 font-medium text-gray-600">After (ms)</th>
               {showMultipleMeasurements && (
-                <>
-                  <th className="text-left py-2 font-medium text-gray-600">StdDev</th>
-                  <th className="text-left py-2 font-medium text-gray-600">Range</th>
-                </>
+                <th className="text-left py-2 font-medium text-gray-600">Range</th>
               )}
             </>
           ) : (
             <>
               <th className="text-left py-2 font-medium text-gray-600">Actual (ms)</th>
               {showMultipleMeasurements && (
-                <>
-                  <th className="text-left py-2 font-medium text-gray-600">StdDev</th>
-                  <th className="text-left py-2 font-medium text-gray-600">Range</th>
-                </>
+                <th className="text-left py-2 font-medium text-gray-600">Range</th>
               )}
             </>
           )}
@@ -313,14 +297,9 @@ export function ShutterReadingsTable({
                       )}
                     </td>
                     {showMultipleMeasurements && (
-                      <>
-                        <td className="py-1.5 font-mono text-gray-600">
-                          {formatStdDev(reading.beforeSamples)}
-                        </td>
-                        <td className="py-1.5 font-mono text-gray-600">
-                          {formatRange(reading.beforeSamples) ?? "—"}
-                        </td>
-                      </>
+                      <td className="py-1.5 font-mono text-gray-600">
+                        {formatRange(reading.beforeSamples) ?? "—"}
+                      </td>
                     )}
                     {/* After columns grouped together */}
                     <td className="py-1.5" onClick={showMultipleMeasurements ? undefined : (e) => e.stopPropagation()}>
@@ -348,14 +327,9 @@ export function ShutterReadingsTable({
                       )}
                     </td>
                     {showMultipleMeasurements && (
-                      <>
-                        <td className="py-1.5 font-mono text-gray-600">
-                          {formatStdDev(reading.measurementSamples)}
-                        </td>
-                        <td className="py-1.5 font-mono text-gray-600">
-                          {formatRange(reading.measurementSamples) ?? "—"}
-                        </td>
-                      </>
+                      <td className="py-1.5 font-mono text-gray-600">
+                        {formatRange(reading.measurementSamples) ?? "—"}
+                      </td>
                     )}
                   </>
                 ) : (
@@ -385,14 +359,9 @@ export function ShutterReadingsTable({
                       )}
                     </td>
                     {showMultipleMeasurements && (
-                      <>
-                        <td className="py-1.5 font-mono text-gray-600">
-                          {formatStdDev(reading.measurementSamples)}
-                        </td>
-                        <td className="py-1.5 font-mono text-gray-600">
-                          {formatRange(reading.measurementSamples) ?? "—"}
-                        </td>
-                      </>
+                      <td className="py-1.5 font-mono text-gray-600">
+                        {formatRange(reading.measurementSamples) ?? "—"}
+                      </td>
                     )}
                   </>
                 )}
@@ -425,12 +394,10 @@ export function ShutterReadingsTable({
                               {reading.beforeSamples[sampleIndex]?.toFixed(1) ?? "—"}
                             </td>
                             <td className="py-1"></td>
-                            <td className="py-1"></td>
                             {/* After columns */}
                             <td className="py-1 font-mono text-gray-700">
                               {reading.measurementSamples[sampleIndex]?.toFixed(1) ?? "—"}
                             </td>
-                            <td className="py-1"></td>
                             <td className="py-1"></td>
                           </>
                         ) : (
@@ -438,7 +405,6 @@ export function ShutterReadingsTable({
                             <td className="py-1 font-mono text-gray-700">
                               {reading.measurementSamples[sampleIndex]?.toFixed(1) ?? "—"}
                             </td>
-                            <td className="py-1"></td>
                             <td className="py-1"></td>
                           </>
                         )}
@@ -486,7 +452,6 @@ export function ShutterReadingsTable({
                           />
                         </td>
                         <td className="py-1.5"></td>
-                        <td className="py-1.5"></td>
                         {/* After columns */}
                         <td className="py-1.5">
                           <input
@@ -500,7 +465,6 @@ export function ShutterReadingsTable({
                             placeholder="—"
                           />
                         </td>
-                        <td className="py-1.5"></td>
                         <td className="py-1.5"></td>
                       </>
                     ) : (
@@ -517,7 +481,6 @@ export function ShutterReadingsTable({
                             placeholder="—"
                           />
                         </td>
-                        <td className="py-1.5"></td>
                         <td className="py-1.5"></td>
                       </>
                     )}

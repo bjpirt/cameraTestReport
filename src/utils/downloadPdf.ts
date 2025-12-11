@@ -4,7 +4,7 @@ import type { TDocumentDefinitions, Content, TableCell } from "pdfmake/interface
 import { CameraMetadata } from "../types/CameraMetadata";
 import { ShutterReading } from "../types/ShutterReading";
 import { fractionToMs, calculateEvDifference } from "./shutter";
-import { calculateAverage, calculateStdDev } from "./statistics";
+import { calculateAverage } from "./statistics";
 
 // Initialize pdfmake with fonts
 pdfMake.vfs = pdfFonts.vfs;
@@ -192,13 +192,6 @@ function createReadingsSection(
       : avg.toFixed(1);
   };
 
-  // Helper to format std dev
-  const formatStdDev = (samples: number[]): string => {
-    const stdDev = calculateStdDev(samples);
-    if (stdDev === null) return "—";
-    return stdDev.toFixed(3);
-  };
-
   // Build header row
   let headerRow: TableCell[];
   let widths: string[];
@@ -209,20 +202,17 @@ function createReadingsSection(
       headerRow = [
         { text: "Expected", style: "tableHeader", alignment: "center" },
         { text: "Before (ms)", style: "tableHeader", alignment: "center" },
-        { text: "StdDev", style: "tableHeader", alignment: "center" },
         { text: "After (ms)", style: "tableHeader", alignment: "center" },
-        { text: "StdDev", style: "tableHeader", alignment: "center" },
         { text: "EV Diff", style: "tableHeader", alignment: "center" },
       ];
-      widths = ["*", "*", "*", "*", "*", "*"];
+      widths = ["*", "*", "*", "*"];
     } else {
       headerRow = [
         { text: "Expected", style: "tableHeader", alignment: "center" },
         { text: "Actual (ms)", style: "tableHeader", alignment: "center" },
-        { text: "StdDev", style: "tableHeader", alignment: "center" },
         { text: "EV Diff", style: "tableHeader", alignment: "center" },
       ];
-      widths = ["*", "*", "*", "*"];
+      widths = ["*", "*", "*"];
     }
   } else {
     if (showBeforeColumn) {
@@ -271,16 +261,13 @@ function createReadingsSection(
         return [
           { text: reading.expectedTime, style: "tableCell", alignment: "center" },
           { text: formatAvgWithCount(reading.beforeSamples), style: "tableCell", alignment: "center" },
-          { text: formatStdDev(reading.beforeSamples), style: "tableCell", alignment: "center" },
           { text: formatAvgWithCount(reading.measurementSamples), style: "tableCell", alignment: "center" },
-          { text: formatStdDev(reading.measurementSamples), style: "tableCell", alignment: "center" },
           { text: evDiff, style: "tableCell", alignment: "center", color: evColor },
         ];
       } else {
         return [
           { text: reading.expectedTime, style: "tableCell", alignment: "center" },
           { text: formatAvgWithCount(reading.measurementSamples), style: "tableCell", alignment: "center" },
-          { text: formatStdDev(reading.measurementSamples), style: "tableCell", alignment: "center" },
           { text: evDiff, style: "tableCell", alignment: "center", color: evColor },
         ];
       }
