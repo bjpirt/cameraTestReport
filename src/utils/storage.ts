@@ -232,6 +232,8 @@ export function importCamera(
     readings: LegacyReading[];
     actions: string[];
     notes: string;
+    showBeforeColumn?: boolean;
+    showMultipleMeasurements?: boolean;
   }
 ): StoredData {
   const newId = generateCameraId();
@@ -270,8 +272,8 @@ export function importCamera(
         readings: migratedReadings,
         actions: importedData.actions,
         notes: importedData.notes,
-        showBeforeColumn: false,
-        showMultipleMeasurements: false,
+        showBeforeColumn: importedData.showBeforeColumn ?? false,
+        showMultipleMeasurements: importedData.showMultipleMeasurements ?? false,
         createdAt: now,
         updatedAt: now,
       },

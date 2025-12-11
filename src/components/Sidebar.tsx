@@ -16,6 +16,8 @@ interface SidebarProps {
     readings: ShutterReading[];
     actions: string[];
     notes: string;
+    showBeforeColumn?: boolean;
+    showMultipleMeasurements?: boolean;
   }) => void;
 }
 
@@ -93,6 +95,8 @@ export function Sidebar({
             readings: data.readings,
             actions: data.actions || [],
             notes: data.notes || "",
+            showBeforeColumn: data.showBeforeColumn,
+            showMultipleMeasurements: data.showMultipleMeasurements,
           });
           onClose();
         } else {

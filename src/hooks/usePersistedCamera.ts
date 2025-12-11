@@ -40,6 +40,8 @@ interface UsePersistedCameraResult {
     readings: ShutterReading[];
     actions: string[];
     notes: string;
+    showBeforeColumn?: boolean;
+    showMultipleMeasurements?: boolean;
   }) => void;
 }
 
@@ -99,6 +101,8 @@ export function usePersistedCamera(): UsePersistedCameraResult {
       readings: ShutterReading[];
       actions: string[];
       notes: string;
+      showBeforeColumn?: boolean;
+      showMultipleMeasurements?: boolean;
     }) => {
       setData((prev) => importCamera(prev, importedData));
     },
