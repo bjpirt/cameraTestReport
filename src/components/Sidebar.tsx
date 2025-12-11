@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { StoredCamera } from "../utils/storage";
 import { safeParseReport, type Report } from "../schemas/reportSchema";
+import type { LiveDataMode } from "../types/CameraMetadata";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -8,7 +9,7 @@ interface SidebarProps {
   cameras: StoredCamera[];
   currentCameraId: string;
   onSelectCamera: (id: string) => void;
-  onAddCamera: () => void;
+  onAddCamera: (liveDataMode?: LiveDataMode) => void;
   onDeleteCamera: (id: string) => void;
   onImportCamera: (data: Report) => void;
 }
@@ -151,7 +152,7 @@ export function Sidebar({
             <div className="relative">
               <div className="flex">
                 <button
-                  onClick={onAddCamera}
+                  onClick={() => onAddCamera()}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-l hover:bg-blue-700
                     transition-colors flex items-center justify-center gap-2"
                 >
@@ -194,6 +195,29 @@ export function Sidebar({
               </div>
               {showNewReportDropdown && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10">
+                  <button
+                    onClick={() => {
+                      setShowNewReportDropdown(false);
+                      onAddCamera("reveni");
+                      onClose();
+                    }}
+                    className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                    Live Reveni Shutter Tester
+                  </button>
                   <button
                     onClick={() => {
                       setShowNewReportDropdown(false);

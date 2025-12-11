@@ -1,4 +1,4 @@
-import { createEmptyCameraMetadata } from "../types/CameraMetadata";
+import { createEmptyCameraMetadata, type LiveDataMode } from "../types/CameraMetadata";
 import { createDefaultReadings } from "../types/ShutterReading";
 import {
   type StoredCamera,
@@ -115,7 +115,7 @@ export function updateCurrentCamera(
   };
 }
 
-export function addCamera(data: StoredData): StoredData {
+export function addCamera(data: StoredData, liveDataMode?: LiveDataMode): StoredData {
   const newId = generateCameraId();
   const now = new Date().toISOString();
   return {
@@ -125,12 +125,12 @@ export function addCamera(data: StoredData): StoredData {
       ...data.cameras,
       [newId]: {
         id: newId,
-        metadata: createEmptyCameraMetadata(),
+        metadata: createEmptyCameraMetadata(liveDataMode),
         readings: createDefaultReadings(),
         actions: [],
         notes: "",
         showBeforeColumn: false,
-        showMultipleMeasurements: false,
+        showMultipleMeasurements: liveDataMode === "reveni",
         createdAt: now,
         updatedAt: now,
       },

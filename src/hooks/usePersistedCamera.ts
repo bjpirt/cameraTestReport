@@ -13,6 +13,7 @@ import {
   StoredCamera,
 } from "../utils/storage";
 import type { CameraMetadata, ShutterReading, Report } from "../schemas/reportSchema";
+import type { LiveDataMode } from "../types/CameraMetadata";
 
 interface UsePersistedCameraResult {
   metadata: CameraMetadata;
@@ -31,7 +32,7 @@ interface UsePersistedCameraResult {
   // Multi-camera support
   cameras: StoredCamera[];
   currentCameraId: string;
-  onAddCamera: () => void;
+  onAddCamera: (liveDataMode?: LiveDataMode) => void;
   onDeleteCamera: (id: string) => void;
   onSelectCamera: (id: string) => void;
   onImportCamera: (data: Report) => void;
@@ -75,8 +76,8 @@ export function usePersistedCamera(): UsePersistedCameraResult {
     setData((prev) => updateCurrentCamera(prev, { showMultipleMeasurements }));
   }, []);
 
-  const onAddCamera = useCallback(() => {
-    setData((prev) => addCamera(prev));
+  const onAddCamera = useCallback((liveDataMode?: LiveDataMode) => {
+    setData((prev) => addCamera(prev, liveDataMode));
   }, []);
 
   const onDeleteCamera = useCallback((id: string) => {

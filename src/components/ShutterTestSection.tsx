@@ -1,7 +1,9 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState } from "react";
 import { ShutterReading } from "../types/ShutterReading";
 import { ShutterReadingsTable } from "./ShutterReadingsTable";
 import { ShutterGraph, ShutterGraphRef } from "./ShutterGraph";
+import { LiveDataInput } from "./LiveDataInput";
+import type { LiveDataMode } from "../types/CameraMetadata";
 
 interface ShutterTestSectionProps {
   readings: ShutterReading[];
@@ -10,6 +12,7 @@ interface ShutterTestSectionProps {
   onShowBeforeColumnChange: (value: boolean) => void;
   showMultipleMeasurements: boolean;
   onShowMultipleMeasurementsChange: (value: boolean) => void;
+  liveDataMode?: LiveDataMode;
 }
 
 export const ShutterTestSection = forwardRef<
@@ -22,7 +25,11 @@ export const ShutterTestSection = forwardRef<
   onShowBeforeColumnChange,
   showMultipleMeasurements,
   onShowMultipleMeasurementsChange,
+  liveDataMode,
 }, ref) {
+  const [selectedSpeedId, setSelectedSpeedId] = useState<string | null>(null);
+  const isLiveMode = liveDataMode === "reveni";
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div className="bg-white rounded-lg shadow p-4">
@@ -51,11 +58,22 @@ export const ShutterTestSection = forwardRef<
             </label>
           </div>
         </div>
+        {isLiveMode && (
+          <LiveDataInput
+            readings={readings}
+            onChange={onChange}
+            showBeforeColumn={showBeforeColumn}
+            selectedSpeedId={selectedSpeedId}
+            onSelectSpeed={setSelectedSpeedId}
+          />
+        )}
         <ShutterReadingsTable
           readings={readings}
           onChange={onChange}
           showBeforeColumn={showBeforeColumn}
           showMultipleMeasurements={showMultipleMeasurements}
+          selectedSpeedId={isLiveMode ? selectedSpeedId : null}
+          onSelectSpeed={isLiveMode ? setSelectedSpeedId : undefined}
         />
       </div>
       <ShutterGraph

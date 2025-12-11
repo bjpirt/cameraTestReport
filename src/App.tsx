@@ -164,6 +164,7 @@ export function App() {
             onShowBeforeColumnChange={setShowBeforeColumn}
             showMultipleMeasurements={showMultipleMeasurements}
             onShowMultipleMeasurementsChange={setShowMultipleMeasurements}
+            liveDataMode={metadata.liveDataMode}
           />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <ActionsPerformed actions={actions} onChange={setActions} />

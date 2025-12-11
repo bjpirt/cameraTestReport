@@ -12,6 +12,8 @@ interface ShutterReadingsTableProps {
   onChange: (readings: ShutterReading[]) => void;
   showBeforeColumn: boolean;
   showMultipleMeasurements: boolean;
+  selectedSpeedId?: string | null;
+  onSelectSpeed?: (id: string | null) => void;
 }
 
 export function ShutterReadingsTable({
@@ -19,11 +21,17 @@ export function ShutterReadingsTable({
   onChange,
   showBeforeColumn,
   showMultipleMeasurements,
+  selectedSpeedId,
+  onSelectSpeed,
 }: ShutterReadingsTableProps) {
   const [newSpeed, setNewSpeed] = useState("");
-  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+  const [manualExpandedRowId, setManualExpandedRowId] = useState<string | null>(null);
   const [newBeforeSample, setNewBeforeSample] = useState("");
   const [newMeasurementSample, setNewMeasurementSample] = useState("");
+
+  // In live mode, auto-expand the selected row; otherwise use manual expansion
+  const isLiveMode = !!onSelectSpeed;
+  const expandedRowId = isLiveMode && showMultipleMeasurements ? selectedSpeedId : manualExpandedRowId;
 
   // Single-value mode handlers (edit first sample)
   const handleBeforeChange = (id: string, value: string) => {
@@ -178,7 +186,7 @@ export function ShutterReadingsTable({
   };
 
   const toggleRow = (id: string) => {
-    setExpandedRowId(expandedRowId === id ? null : id);
+    setManualExpandedRowId(manualExpandedRowId === id ? null : id);
   };
 
   const formatEvDiff = (ev: number): string => {
@@ -254,14 +262,25 @@ export function ShutterReadingsTable({
           const beforeValue = getFirstSample(reading.beforeSamples);
           const measurementValue = getFirstSample(reading.measurementSamples);
 
+          const isSelected = selectedSpeedId === reading.id;
+
+          // Handle row click - either expand row or select for live input
+          const handleRowClick = () => {
+            if (onSelectSpeed) {
+              onSelectSpeed(reading.id);
+            } else if (showMultipleMeasurements) {
+              toggleRow(reading.id);
+            }
+          };
+
           return (
             <React.Fragment key={reading.id}>
               {/* Summary Row */}
               <tr
                 className={`border-b border-gray-100 ${
-                  showMultipleMeasurements ? "cursor-pointer hover:bg-gray-50" : ""
-                }`}
-                onClick={showMultipleMeasurements ? () => toggleRow(reading.id) : undefined}
+                  showMultipleMeasurements || onSelectSpeed ? "cursor-pointer hover:bg-gray-50" : ""
+                } ${isSelected ? "bg-yellow-100 border-l-4 border-l-yellow-500" : ""}`}
+                onClick={handleRowClick}
               >
                 {showMultipleMeasurements && (
                   <td className="py-1.5 text-gray-400">

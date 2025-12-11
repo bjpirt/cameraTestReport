@@ -8,6 +8,7 @@ export const CameraMetadataSchema = z.object({
   customerName: z.string(),
   serviceDate: z.string(),
   createdTimestamp: z.string(),
+  liveDataMode: z.enum(["off", "reveni"]).optional(),
 });
 
 export type CameraMetadata = z.infer<typeof CameraMetadataSchema>;

@@ -4,7 +4,9 @@ import { getTodayDateString } from "../utils/date";
 export type { CameraMetadata } from "../schemas/reportSchema";
 import type { CameraMetadata } from "../schemas/reportSchema";
 
-export function createEmptyCameraMetadata(): CameraMetadata {
+export type LiveDataMode = CameraMetadata["liveDataMode"];
+
+export function createEmptyCameraMetadata(liveDataMode?: LiveDataMode): CameraMetadata {
   return {
     make: "",
     model: "",
@@ -12,5 +14,6 @@ export function createEmptyCameraMetadata(): CameraMetadata {
     customerName: "",
     serviceDate: getTodayDateString(),
     createdTimestamp: new Date().toISOString(),
+    liveDataMode,
   };
 }
