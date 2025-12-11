@@ -180,9 +180,10 @@ describe("Reports Sidebar", () => {
     cy.contains("Nikon").should("exist");
   });
 
-  it("shows import button in sidebar footer", () => {
+  it("shows import option in new report dropdown", () => {
     cy.get('[aria-label="Open reports menu"]').click();
-    cy.get('[aria-label="Import JSON report"]').should("be.visible");
+    cy.get('[aria-label="More options"]').click();
+    cy.contains("Import Saved JSON").should("be.visible");
   });
 
   it("imports a JSON report file", () => {
