@@ -1,9 +1,6 @@
-export interface ShutterReading {
-  id: string;
-  expectedTime: string; // fraction like "1/1000" or seconds like "1"
-  beforeSamples: number[]; // Empty array when no samples
-  measurementSamples: number[]; // "Actual" or "After" depending on mode
-}
+// Re-export the type from the Zod schema
+export type { ShutterReading } from "../schemas/reportSchema";
+import type { ShutterReading } from "../schemas/reportSchema";
 
 export const STANDARD_SHUTTER_SPEEDS = [
   "1/1000",

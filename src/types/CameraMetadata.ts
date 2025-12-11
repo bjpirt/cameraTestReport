@@ -1,13 +1,8 @@
 import { getTodayDateString } from "../utils/date";
 
-export interface CameraMetadata {
-  make: string;
-  model: string;
-  serialNumber: string;
-  customerName: string;
-  serviceDate: string;
-  createdTimestamp: string; // Full ISO timestamp for sorting
-}
+// Re-export the type from the Zod schema
+export type { CameraMetadata } from "../schemas/reportSchema";
+import type { CameraMetadata } from "../schemas/reportSchema";
 
 export function createEmptyCameraMetadata(): CameraMetadata {
   return {

@@ -1,6 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { CameraMetadata } from "../types/CameraMetadata";
-import { ShutterReading } from "../types/ShutterReading";
 import {
   loadData,
   saveData,
@@ -14,6 +12,7 @@ import {
   StoredData,
   StoredCamera,
 } from "../utils/storage";
+import type { CameraMetadata, ShutterReading, Report } from "../schemas/reportSchema";
 
 interface UsePersistedCameraResult {
   metadata: CameraMetadata;
@@ -35,14 +34,7 @@ interface UsePersistedCameraResult {
   onAddCamera: () => void;
   onDeleteCamera: (id: string) => void;
   onSelectCamera: (id: string) => void;
-  onImportCamera: (data: {
-    metadata: CameraMetadata;
-    readings: ShutterReading[];
-    actions: string[];
-    notes: string;
-    showBeforeColumn?: boolean;
-    showMultipleMeasurements?: boolean;
-  }) => void;
+  onImportCamera: (data: Report) => void;
 }
 
 export function usePersistedCamera(): UsePersistedCameraResult {
@@ -95,19 +87,9 @@ export function usePersistedCamera(): UsePersistedCameraResult {
     setData((prev) => switchCamera(prev, id));
   }, []);
 
-  const onImportCamera = useCallback(
-    (importedData: {
-      metadata: CameraMetadata;
-      readings: ShutterReading[];
-      actions: string[];
-      notes: string;
-      showBeforeColumn?: boolean;
-      showMultipleMeasurements?: boolean;
-    }) => {
-      setData((prev) => importCamera(prev, importedData));
-    },
-    []
-  );
+  const onImportCamera = useCallback((importedData: Report) => {
+    setData((prev) => importCamera(prev, importedData));
+  }, []);
 
   const camera = getCurrentCamera(data);
   return {

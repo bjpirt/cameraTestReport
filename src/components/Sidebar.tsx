@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import { StoredCamera } from "../utils/storage";
-import { CameraMetadata } from "../types/CameraMetadata";
-import { ShutterReading } from "../types/ShutterReading";
+import { safeParseReport, type Report } from "../schemas/reportSchema";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -11,14 +10,7 @@ interface SidebarProps {
   onSelectCamera: (id: string) => void;
   onAddCamera: () => void;
   onDeleteCamera: (id: string) => void;
-  onImportCamera: (data: {
-    metadata: CameraMetadata;
-    readings: ShutterReading[];
-    actions: string[];
-    notes: string;
-    showBeforeColumn?: boolean;
-    showMultipleMeasurements?: boolean;
-  }) => void;
+  onImportCamera: (data: Report) => void;
 }
 
 export function Sidebar({
@@ -89,19 +81,16 @@ export function Sidebar({
       try {
         const content = e.target?.result as string;
         const data = JSON.parse(content);
+        const result = safeParseReport(data);
 
-        if (data.metadata && data.readings) {
-          onImportCamera({
-            metadata: data.metadata,
-            readings: data.readings,
-            actions: data.actions || [],
-            notes: data.notes || "",
-            showBeforeColumn: data.showBeforeColumn,
-            showMultipleMeasurements: data.showMultipleMeasurements,
-          });
+        if (result.success) {
+          onImportCamera(result.data);
           onClose();
         } else {
-          alert("Invalid report file format");
+          const errorMessages = result.error.issues
+            .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+            .join("\n");
+          alert(`Invalid report file format:\n${errorMessages}`);
         }
       } catch {
         alert("Failed to parse JSON file");

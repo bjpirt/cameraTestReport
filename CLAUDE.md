@@ -75,6 +75,7 @@ This is a 100% client-side application with no backend. All data is stored in br
 - Use type inference for local variables
 - Avoid `any` - use `unknown` with type guards when type is truly unknown
 - Use discriminated unions over type assertions
+- **Use Zod for parsing and validation**: When parsing JSON or external data, use Zod schemas to validate and derive TypeScript types. Define schemas in `src/schemas/` and use `z.infer<>` to derive types from them. This ensures runtime validation matches compile-time types.
 
 ### Code Quality (SOLID, but Simple)
 
@@ -122,8 +123,9 @@ This is a 100% client-side application with no backend. All data is stored in br
 src/
   components/     # React components
   hooks/          # Custom React hooks
+  schemas/        # Zod schemas (types derived from these)
   utils/          # Pure utility functions
-  types/          # TypeScript type definitions
+  types/          # TypeScript type definitions (re-export from schemas where applicable)
   styles.css      # Tailwind CSS entry point
   App.tsx         # Root component
   index.tsx       # Entry point
