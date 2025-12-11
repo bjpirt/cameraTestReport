@@ -32,11 +32,28 @@ describe("Shutter Speed Readings", () => {
     cy.contains("+0.00"); // EV diff should be 0
   });
 
-  it("shows EV difference with color coding", () => {
-    // Enter a value that's off by more than 0.5 EV
-    // 1/1000 expects 1ms, entering 3ms would be ~1.58 EV off
-    cy.get("#reading-actual-0").type("3");
-    cy.get(".text-red-600").should("exist");
+  it("shows EV difference with speed-dependent color coding", () => {
+    // Fast speeds (< 1/125) have ±0.333 EV tolerance
+    // 1/1000 expects 1ms, entering 1.2ms is ~0.26 EV off (within 0.333 tolerance) -> green
+    cy.get("#reading-actual-0").type("1.2");
+    cy.get("tbody tr").filter(":contains('1/1000')").first()
+      .find(".text-green-600").should("exist");
+
+    // 1/1000 with 1.5ms is ~0.58 EV off (outside 0.333 tolerance) -> red
+    cy.get("#reading-actual-0").clear().type("1.5");
+    cy.get("tbody tr").filter(":contains('1/1000')").first()
+      .find(".text-red-600").should("exist");
+
+    // Slow speeds (>= 1/125) have ±0.25 EV tolerance
+    // 1/60 (index 4) expects ~16.67ms, entering 19ms is ~0.19 EV off (within 0.25 tolerance) -> green
+    cy.get("#reading-actual-4").type("19");
+    cy.get("tbody tr").filter(":contains('1/60')").first()
+      .find(".text-green-600").should("exist");
+
+    // 1/60 with 22ms is ~0.40 EV off (outside 0.25 tolerance) -> red
+    cy.get("#reading-actual-4").clear().type("22");
+    cy.get("tbody tr").filter(":contains('1/60')").first()
+      .find(".text-red-600").should("exist");
   });
 
   it("allows adding custom shutter speeds", () => {
@@ -71,9 +88,17 @@ describe("Shutter Speed Readings", () => {
       cy.contains("+0.00");
     });
 
-    it("shows EV difference with color coding", () => {
-      cy.get("#reading-after-0").type("3");
-      cy.get(".text-red-600").should("exist");
+    it("shows EV difference with speed-dependent color coding", () => {
+      // Fast speed (1/1000): 0.333 EV tolerance
+      // 1.2ms is ~0.26 EV off -> green
+      cy.get("#reading-after-0").type("1.2");
+      cy.get("tbody tr").filter(":contains('1/1000')").first()
+        .find(".text-green-600").should("exist");
+
+      // 1.5ms is ~0.58 EV off -> red
+      cy.get("#reading-after-0").clear().type("1.5");
+      cy.get("tbody tr").filter(":contains('1/1000')").first()
+        .find(".text-red-600").should("exist");
     });
   });
 });

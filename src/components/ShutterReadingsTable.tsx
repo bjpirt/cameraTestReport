@@ -194,10 +194,18 @@ export function ShutterReadingsTable({
     return `${sign}${ev.toFixed(2)}`;
   };
 
-  const getEvColor = (ev: number): string => {
+  // Get tolerance for a given shutter speed (same logic as ShutterGraph)
+  // Speeds faster than 1/125 (< 8ms) get ±0.333 EV tolerance
+  // Slower speeds (1/125 and below, >= 8ms) get ±0.25 EV tolerance
+  const getToleranceForSpeed = (expectedTime: string): number => {
+    const ms = fractionToMs(expectedTime);
+    return ms >= 8 ? 0.25 : 0.333;
+  };
+
+  const getEvColor = (ev: number, expectedTime: string): string => {
     const absEv = Math.abs(ev);
-    if (absEv < 0.25) return "text-green-600";
-    if (absEv < 0.5) return "text-yellow-600";
+    const tolerance = getToleranceForSpeed(expectedTime);
+    if (absEv <= tolerance) return "text-green-600";
     return "text-red-600";
   };
 
@@ -332,7 +340,7 @@ export function ShutterReadingsTable({
                         <td className="py-1.5 font-mono text-gray-600">
                           {formatRange(reading.beforeSamples) ?? "—"}
                         </td>
-                        <td className={`py-1.5 font-mono ${beforeEvDiff !== null ? getEvColor(beforeEvDiff) : ""}`}>
+                        <td className={`py-1.5 font-mono ${beforeEvDiff !== null ? getEvColor(beforeEvDiff, reading.expectedTime) : ""}`}>
                           {beforeEvDiff !== null ? formatEvDiff(beforeEvDiff) : "—"}
                         </td>
                       </>
@@ -401,7 +409,7 @@ export function ShutterReadingsTable({
                     )}
                   </>
                 )}
-                <td className={`py-1.5 font-mono ${evDiff !== null ? getEvColor(evDiff) : ""}`}>
+                <td className={`py-1.5 font-mono ${evDiff !== null ? getEvColor(evDiff, reading.expectedTime) : ""}`}>
                   {evDiff !== null ? formatEvDiff(evDiff) : "—"}
                 </td>
               </tr>
