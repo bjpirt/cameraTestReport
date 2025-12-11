@@ -81,6 +81,43 @@ describe("Shutter Speed Readings", () => {
     cy.get("tbody tr").should("have.length", 11);
   });
 
+  it("does not show Clear Data button when no data entered", () => {
+    cy.contains("button", "Clear Data").should("not.exist");
+  });
+
+  it("shows Clear Data button when data is entered", () => {
+    cy.get("#reading-actual-0").type("1000");
+    cy.contains("button", "Clear Data").should("exist");
+  });
+
+  it("clears all measurement data when Clear Data is confirmed", () => {
+    // Enter some data
+    cy.get("#reading-actual-0").type("1000");
+    cy.get("#reading-actual-1").type("500");
+
+    // Click Clear Data and confirm
+    cy.on("window:confirm", () => true);
+    cy.contains("button", "Clear Data").click();
+
+    // Data should be cleared
+    cy.get("#reading-actual-0").should("have.value", "");
+    cy.get("#reading-actual-1").should("have.value", "");
+    cy.contains("button", "Clear Data").should("not.exist");
+  });
+
+  it("does not clear data when Clear Data is cancelled", () => {
+    // Enter some data
+    cy.get("#reading-actual-0").type("1000");
+
+    // Click Clear Data but cancel
+    cy.on("window:confirm", () => false);
+    cy.contains("button", "Clear Data").click();
+
+    // Data should still be there
+    cy.get("#reading-actual-0").should("have.value", "1000");
+    cy.contains("button", "Clear Data").should("exist");
+  });
+
   describe("with Before and After mode enabled", () => {
     beforeEach(() => {
       cy.contains("Before and After").click();

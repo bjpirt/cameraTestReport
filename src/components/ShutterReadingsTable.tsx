@@ -138,6 +138,23 @@ export function ShutterReadingsTable({
     setNewSpeed("");
   };
 
+  const handleClearData = () => {
+    if (!window.confirm("Are you sure you want to clear all measurement data?")) {
+      return;
+    }
+    onChange(
+      readings.map((r) => ({
+        ...r,
+        beforeSamples: [],
+        measurementSamples: [],
+      }))
+    );
+  };
+
+  const hasData = readings.some(
+    (r) => r.beforeSamples.length > 0 || r.measurementSamples.length > 0
+  );
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -559,6 +576,16 @@ export function ShutterReadingsTable({
               >
                 Add
               </button>
+              <div className="flex-1" />
+              {hasData && (
+                <button
+                  onClick={handleClearData}
+                  className="px-3 py-1 text-sm text-red-600 border border-red-300 rounded hover:bg-red-50
+                    focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+                >
+                  Clear Data
+                </button>
+              )}
             </div>
           </td>
         </tr>
