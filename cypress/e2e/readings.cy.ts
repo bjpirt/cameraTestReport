@@ -118,6 +118,68 @@ describe("Shutter Speed Readings", () => {
     cy.contains("button", "Clear Data").should("exist");
   });
 
+  it("shows delete button on row hover", () => {
+    // Delete button should not be visible initially
+    cy.get('[aria-label="Remove speed 1/1000"]').should("have.class", "opacity-0");
+
+    // Hover over the 1/1000 row and button should become visible
+    cy.get("tbody tr").filter(":contains('1/1000')").first().trigger("mouseenter");
+    cy.get('[aria-label="Remove speed 1/1000"]').should("have.class", "group-hover:opacity-100");
+  });
+
+  it("removes a speed without data (no confirmation)", () => {
+    // Should have 11 rows initially
+    cy.get("tbody tr").should("have.length", 11);
+    cy.contains("1/1000").should("exist");
+
+    // Click delete on 1/1000 row
+    cy.get('[aria-label="Remove speed 1/1000"]').click({ force: true });
+
+    // Speed should be removed, now 10 rows
+    cy.get("tbody tr").should("have.length", 10);
+    cy.contains("1/1000").should("not.exist");
+  });
+
+  it("removes a speed with data after confirmation", () => {
+    // Enter data in 1/1000 row (index 10)
+    cy.get("#reading-actual-10").type("1.2");
+
+    // Confirm removal
+    cy.on("window:confirm", () => true);
+    cy.get('[aria-label="Remove speed 1/1000"]').click({ force: true });
+
+    // Speed should be removed
+    cy.get("tbody tr").should("have.length", 10);
+    cy.contains("1/1000").should("not.exist");
+  });
+
+  it("does not remove a speed with data when cancelled", () => {
+    // Enter data in 1/1000 row
+    cy.get("#reading-actual-10").type("1.2");
+
+    // Cancel removal
+    cy.on("window:confirm", () => false);
+    cy.get('[aria-label="Remove speed 1/1000"]').click({ force: true });
+
+    // Speed should still be there
+    cy.get("tbody tr").should("have.length", 11);
+    cy.contains("1/1000").should("exist");
+    cy.get("#reading-actual-10").should("have.value", "1.2");
+  });
+
+  it("prevents deleting the last remaining speed", () => {
+    // Remove all but one speed
+    for (let i = 0; i < 10; i++) {
+      cy.get('[aria-label^="Remove speed"]').first().click({ force: true });
+    }
+
+    // Should have 1 row left
+    cy.get("tbody tr").should("have.length", 1);
+
+    // Delete button should not exist for the last row
+    cy.get('[aria-label^="Remove speed"]').should("not.exist");
+  });
+
   describe("with Before and After mode enabled", () => {
     beforeEach(() => {
       cy.contains("Before and After").click();

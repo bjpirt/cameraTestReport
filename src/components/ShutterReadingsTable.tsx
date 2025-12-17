@@ -155,6 +155,26 @@ export function ShutterReadingsTable({
     (r) => r.beforeSamples.length > 0 || r.measurementSamples.length > 0
   );
 
+  const handleDeleteSpeed = (id: string, expectedTime: string) => {
+    // Prevent deleting the last speed
+    if (readings.length <= 1) {
+      return;
+    }
+
+    const reading = readings.find((r) => r.id === id);
+    const hasReadingData =
+      reading &&
+      (reading.beforeSamples.length > 0 || reading.measurementSamples.length > 0);
+
+    if (hasReadingData) {
+      if (!window.confirm(`Are you sure you want to remove ${expectedTime}? This will delete its measurement data.`)) {
+        return;
+      }
+    }
+
+    onChange(readings.filter((r) => r.id !== id));
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -236,14 +256,14 @@ export function ShutterReadingsTable({
   // Calculate column count for colspan
   const getColSpan = () => {
     if (showMultipleMeasurements) {
-      // Chevron + Expected + value cols + range cols + EV Diff cols
-      // Before and After: chevron + expected + before + range + evDiff + after + range + evDiff = 8
-      // Single: chevron + expected + actual + range + evDiff = 5
-      return showBeforeColumn ? 8 : 5;
+      // Chevron + Expected + value cols + range cols + EV Diff cols + delete col
+      // Before and After: chevron + expected + before + range + evDiff + after + range + evDiff + delete = 9
+      // Single: chevron + expected + actual + range + evDiff + delete = 6
+      return showBeforeColumn ? 9 : 6;
     }
-    // Before and After: expected + before + after + evDiff = 4
-    // Single: expected + actual + evDiff = 3
-    return showBeforeColumn ? 4 : 3;
+    // Before and After: expected + before + after + evDiff + delete = 5
+    // Single: expected + actual + evDiff + delete = 4
+    return showBeforeColumn ? 5 : 4;
   };
 
   return (
@@ -279,6 +299,7 @@ export function ShutterReadingsTable({
             </>
           )}
           <th className="text-left py-2 font-medium text-gray-600">EV Diff</th>
+          <th className="w-8 py-2"></th>
         </tr>
       </thead>
       <tbody>
@@ -315,7 +336,7 @@ export function ShutterReadingsTable({
             <React.Fragment key={reading.id}>
               {/* Summary Row */}
               <tr
-                className={`border-b border-gray-100 ${
+                className={`group border-b border-gray-100 ${
                   showMultipleMeasurements || onSelectSpeed ? "cursor-pointer hover:bg-gray-50" : ""
                 } ${isSelected ? "bg-yellow-100 border-l-4 border-l-yellow-500" : ""}`}
                 onClick={handleRowClick}
@@ -430,6 +451,21 @@ export function ShutterReadingsTable({
                 <td className={`py-1.5 font-mono ${evDiff !== null ? getEvColor(evDiff, reading.expectedTime) : ""}`}>
                   {evDiff !== null ? formatEvDiff(evDiff) : "—"}
                 </td>
+                <td className="py-1.5 text-center">
+                  {readings.length > 1 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteSpeed(reading.id, reading.expectedTime);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 px-1 transition-opacity"
+                      title={`Remove ${reading.expectedTime}`}
+                      aria-label={`Remove speed ${reading.expectedTime}`}
+                    >
+                      ×
+                    </button>
+                  )}
+                </td>
               </tr>
 
               {/* Expanded Sub-rows */}
@@ -492,6 +528,7 @@ export function ShutterReadingsTable({
                             ×
                           </button>
                         </td>
+                        <td className="py-1"></td>
                       </tr>
                     ))}
 
@@ -548,6 +585,7 @@ export function ShutterReadingsTable({
                         <td className="py-1.5"></td>
                       </>
                     )}
+                    <td className="py-1.5"></td>
                     <td className="py-1.5"></td>
                   </tr>
                 </>
